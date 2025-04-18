@@ -57,9 +57,9 @@ class Oled:
         self.hrv_items = ['Avg HR: ', 'Avg PPI: ', 'RMSSD: ', 'SDNN: ']
         sns_index = 'normal'  # initial value
         pns_index = 'normal'
-        self.hrv_units = ['BPM', 'ms', 'ms', 'ms', sns_index, pns_index]
+        self.hrv_units = ['BPM', 'ms', 'ms', 'ms']
         self.kubios_items = ['Avg HR: ', 'Avg PPI: ', 'RMSSD: ', 'SDNN: ', 'SNS: ', 'PNS: ']
-        self.kubios_units = ['BPM', 'ms', 'ms', 'ms', '', ''] # SNS ja PNS ei yksiköitä -> lisää termit high, low tai normal arvon mukaan?
+        self.kubios_units = ['BPM', 'ms', 'ms', 'ms', sns_index, pns_index]
         self.stopping_text = ['Returning main', 'menu in 5 s...', '', 'Press to return']
         self.error_text = ['  DATA ERROR', 'Press to retry', '', 'Menu in 5 s...']
 
