@@ -285,9 +285,10 @@ measurements = [] # test for no history
 
 # Start
 oled.main_menu()
+oled.fill(0)
 
 while True:
-    oled.fill(0)
+    
     value = get_fifo_value(rot)
     
     if value != None:
