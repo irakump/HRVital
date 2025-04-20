@@ -6,7 +6,6 @@ from led import Led
 import micropython 
 micropython.alloc_emergency_exception_buf(200)
 
-# TODO: yhdistä handlerit encoderin kääntämiselle ja painallukselle
 
 class Encoder:
     def __init__(self):
@@ -28,9 +27,9 @@ class Encoder:
     
     def button_handler(self, button):
         current_timestamp = time.ticks_ms()
-        # ignore button press if less than 300ms from previous
+        # ignore button press if less than 300 ms from previous
         if time.ticks_diff(current_timestamp, self.previous_button_press_timestamp) > 300:
-            self.fifo.put(2)
+            self.fifo.put(0)
             self.previous_button_press_timestamp = current_timestamp
         else:
             self.fifo.put(-2)
@@ -45,9 +44,12 @@ class Oled:
         # Menu settings
         self.x = 20
         self.y = 5
-        self.line_height = 15
-        self.symbol = ">"
+        self.line_height = 15 # use when 4 rows in the menu
+        self.symbol = '>'
         self.selected_index = 0 # initial value
+        self.history_index = 0
+        self.selected_menu = 'main_menu' # initial value
+        self.menu_shown = False
         
         # Text settings
         self.start_measurement_texts = ['Touch the sensor', '   and press', '   to start']
@@ -113,7 +115,7 @@ class Oled:
             index = self.data_collected_texts.index(item)
             self.text(item, 5, self.y + self.line_height * index)
     
-        oled.show()
+        self.show()
     
     def show_hrv_results(self, hrv_results):
         for item in self.hrv_items:
@@ -142,17 +144,22 @@ class Oled:
         self.show()
 
     
-    # History
+    # History -> voi tallentaa max 4 edellistä mittausta
     def history_menu(self, measurements): # parametrina Kubios-mittauksen tuloksia listassa: [[],[],[]] -> listoja listan sisällä?
         for i in range(len(measurements)):
             text = f'Measurement {i + 1}'
-            self.text(text, self.x, self.y + 12 * i) # max 5 mittausta näkyvissä
+            self.text(text, self.x, self.y + 12 * i) # max 4 mittausta näkyvissä + menu palaaminen
         
-        self.text(self.symbol, 5, self.y + self.line_height * self.selected_index) # draw the selection symbol
+        if len(measurements) == 0:
+            self.text('NO HISTORY', self.x, self.y + 20)
+        
+        self.text('Main menu', self.x, self.y + 12 * len(measurements))
+        
+        self.text(self.symbol, 5, self.y + 12 * self.history_index) # draw the selection symbol
         self.show()
     
     def show_selected_history(self, measurements):
-        index = self.selected_index
+        index = self.history_index
         selected_measurement = measurements[index]
         
         self.show_kubios_results(selected_measurement)
@@ -173,6 +180,11 @@ class Oled:
     
         self.show() 
 
+# Rotary encoder and oled definitions
+rot = Encoder()
+oled = Oled()
+
+# Functions without a class
 def evaluate_sns_pns(kubios_results):
     sns = kubios_results[4]
     pns = kubios_results[5]
@@ -199,13 +211,90 @@ def evaluate_sns_pns(kubios_results):
     
     return sns_index, pns_index
 
-rot = Encoder()
-oled = Oled()
+def get_fifo_value(rot):   
+    if rot.fifo.has_data():
+        fifo_value = rot.fifo.get()
+        print(fifo_value)
+        return fifo_value
+    
+    return None # returns none, if fifo empty 
 
-oled.fill(0)
+
+def detect_user_action(oled, fifo_value, measurements): # tarvitsee nyt parametrina listan kubios-mittauksista = measurements
+    # read fifo value
+    if fifo_value == 1:
+        oled.selected_index += 1
+    elif fifo_value == -1:
+        oled.selected_index -= 1
+    elif fifo_value == 0: # rotary button pressed
+        if oled.selected_menu == 'main_menu' and oled.selected_index == 0:
+            oled.selected_menu = 'hr'
+        elif oled.selected_menu == 'main_menu' and oled.selected_index == 1:
+            oled.selected_menu = 'hrv'
+        elif oled.selected_menu == 'main_menu' and oled.selected_index == 2:
+            oled.selected_menu = 'kubios'
+        elif oled.selected_menu == 'main_menu' and oled.selected_index == 3:
+            oled.selected_menu = 'history'
+    
+    # update history index
+    if oled.selected_menu == 'history':
+        if fifo_value == 1:
+            oled.history_index += 1
+        elif fifo_value == -1:
+            oled.history_index -=1
+    
+    # prevent overscrolling
+    if oled.selected_menu == 'main_menu':
+        oled.selected_index = min(3, max(0, oled.selected_index))
+    elif oled.selected_menu == 'history':
+        oled.history_index = min(len(measurements), max(0, oled.history_index))
+    
+    oled.text(oled.symbol, 5, oled.y + oled.line_height * oled.selected_index) # draw the selection symbol
+    
+    # update display
+    if oled.selected_menu == 'main_menu':
+        oled.main_menu()
+
+    return oled.selected_menu
+
+def change_menu(oled):
+    if oled.selected_menu == 'main_menu':
+        #oled.main_menu()
+        pass
+    elif oled.selected_menu == 'hr':
+        oled.hr_menu()
+    elif oled.selected_menu == 'hrv':
+        # kutsu tässä hrv-datan mittauksen funktiota? Vai tämän funktion jälkeen pääohjelmassa?
+        oled.collecting_data() # updates the oled (measures nothing)
+    elif oled.selected_menu == 'kubios':
+        # kutsu tässä hrv-datan mittauksen funktiota?
+        oled.collecting_data()
+        # lähetä tässä data kubiokseen?
+    elif oled.selected_menu == 'history':
+        oled.history_menu(measurements)
+
+def update_oled():
+    pass
+
+
+# Results for testing
+hrv_results = [77, 1000, 23, 22]
+kubios_results = [77, 1000, 23, 22, -1.1, 1.9]
+#measurements = [[55, 1000, 23, 22, 0.5, 1.8], [88, 999, 33, 54, 2.0, -1.5], [], []] # max pituus = 4!
+measurements = [] # test for no history
+
+# Start
+oled.main_menu()
 
 while True:
     oled.fill(0)
+    value = get_fifo_value(rot)
+    
+    if value != None:
+        detect_user_action(oled, value, measurements)
+        oled.fill(0)
+        change_menu(oled)
+    
     
     # TEST PRINTS below this row
     
@@ -214,7 +303,6 @@ while True:
     #oled.collecting_data()
     #oled.hrv_data_collected()
 
-    hrv_results = [77, 1000, 23, 22]
     #oled.show_hrv_results(hrv_results)
     
     #oled.hr_menu()
@@ -222,10 +310,8 @@ while True:
     
     #oled.stopping_message()
     #oled.error_message()
+
+    #oled.show_kubios_results(kubios_results)
     
-    kubios_results = [77, 1000, 23, 22, -1.1, 1.9]
-    oled.show_kubios_results(kubios_results)
-    
-    measurements = [[55, 1000, 23, 22, 0.5, 1.8], [88, 999, 33, 54, 2.0, -1.5], [], [], []]
     #oled.history_menu(measurements)
     #oled.show_selected_history(measurements)
