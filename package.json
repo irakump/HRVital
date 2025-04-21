@@ -1,7 +1,8 @@
 {
   "urls": [
     ["collect_data.py", "http://localhost:8000/project_files/collect_data.py"],
-    ["live_pulse.py", "http://localhost:8000/project_files/live_pulse.py"]
+    ["live_pulse.py", "http://localhost:8000/project_files/live_pulse.py"],
+    ["history.py", "http://localhost:8000/project_files/history.py"]
   ],
   "deps": [
   ],
