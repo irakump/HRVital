@@ -2,7 +2,9 @@
   "urls": [
     ["collect_data.py", "http://localhost:8000/project_files/collect_data.py"],
     ["live_pulse.py", "http://localhost:8000/project_files/live_pulse.py"],
-    ["history.py", "http://localhost:8000/project_files/history.py"]
+    ["history.py", "http://localhost:8000/project_files/history.py"],
+    ["oled.py", "http://localhost:8000/project_files/oled.py"],
+    ["basic_hrv_analysis_v2.py", "http://localhost:8000/project_files/basic_hrv_analysis_v2.py"]
   ],
   "deps": [
   ],
