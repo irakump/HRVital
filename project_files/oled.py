@@ -100,6 +100,8 @@ class Oled:
         self.text(self.stop_text, 5, self.y + self.line_height * 3)
         self.show()
     
+    # TODO: from live_pulse.py: yhdistä show_hr ja live pulsen show_ppg_signal_on_oled funktiot!
+    
     
     # HRV
     def collecting_data(self): # käytä samaa myös Kubiokseen
