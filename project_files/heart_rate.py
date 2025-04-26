@@ -119,7 +119,10 @@ class HR:
     
     def reset_button(self):
         self.button_flag = False
-    
+
+# def run1 not working properly, use def run2
+
+"""
     # Main program loop
     def run1(self):
         last_button_check = ticks_ms()
@@ -178,7 +181,8 @@ class HR:
                         self.oled.show()
             
             sleep(0.05)       
-            
+"""
+
     # Main program loop version 2
     def run2(self):
         last_button_check = ticks_ms()
@@ -244,10 +248,3 @@ class HR:
                         self.oled.show()
 
             sleep(0.05)
-
-"""
-hr = HR()
-
-while True:
-    hr.run2()
-"""
