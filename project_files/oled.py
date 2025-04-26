@@ -33,6 +33,10 @@ class Encoder:
             self.previous_button_press_timestamp = current_timestamp
         else:
             self.fifo.put(-2)
+            
+    def clear(self): # clear the fifo
+        while self.fifo.has_data():
+            x = self.fifo.get()
 
 class Oled:
     def __init__(self):
@@ -52,7 +56,7 @@ class Oled:
         self.menu_shown = False
         
         # Text settings
-        self.start_measurement_texts = ['Touch the sensor', '   and press', '   to start']
+        self.start_measurement_texts = ['Touch the sensor', '   and press', '   to START']
         self.stop_text = '(Press to stop)'
         self.data_collection_texts = ['  Collecting', '    data...', ' Wait for 30 s'] # laskuri numeron kohdalle? # saisiko pisteet liikkumaan?
         self.data_collected_texts = ['Data collected', '', '  Displaying', '  results...'] # pisteet liikkumaan..?
@@ -85,13 +89,18 @@ class Oled:
         self.text(self.symbol, 5, self.y + self.line_height * self.selected_index) # draw the selection symbol
         self.show() # update display
     
+    def logo(self):
+        self.text('HRVital', 37, 20)
+        self.show()
+        time.sleep(3)
+    
     # HR
     def hr_menu(self):
         for item in self.start_measurement_texts:
             index = self.start_measurement_texts.index(item)
             self.text(item, 3, self.y + self.line_height * index)
         
-        self.text(self.stop_text, 5, self.y + self.line_height * (index + 1))
+        #self.text(self.stop_text, 5, self.y + self.line_height * (index + 1))
         self.show()
 
     # tähän luetaan mitattu bpm-arvo fifosta!
@@ -182,98 +191,6 @@ class Oled:
     
         self.show() 
 
-# Rotary encoder and oled definitions
-rot = Encoder()
-oled = Oled()
-
-# Functions without a class
-def evaluate_sns_pns(kubios_results):
-    sns = kubios_results[4]
-    pns = kubios_results[5]
-    
-    # sns
-    if sns < -1:
-        sns_index = 'low'
-    
-    elif -1 <= sns < 1:
-        sns_index = 'normal'
-    
-    else:
-        sns_index = 'high'
-    
-    # pns
-    if pns < -1:
-        pns_index = 'low'
-    
-    elif -1 <= pns < 1:
-        pns_index = 'normal'
-    
-    else:
-        pns_index = 'high'        
-    
-    return sns_index, pns_index
-
-def get_fifo_value(rot):   
-    if rot.fifo.has_data():
-        fifo_value = rot.fifo.get()
-        print(fifo_value)
-        return fifo_value
-    
-    return None # returns none, if fifo empty 
-
-
-def detect_user_action(oled, fifo_value, measurements): # tarvitsee nyt parametrina listan kubios-mittauksista = measurements
-    # read fifo value
-    if fifo_value == 1:
-        oled.selected_index += 1
-    elif fifo_value == -1:
-        oled.selected_index -= 1
-    elif fifo_value == 0: # rotary button pressed
-        if oled.selected_menu == 'main_menu' and oled.selected_index == 0:
-            oled.selected_menu = 'hr'
-        elif oled.selected_menu == 'main_menu' and oled.selected_index == 1:
-            oled.selected_menu = 'hrv'
-        elif oled.selected_menu == 'main_menu' and oled.selected_index == 2:
-            oled.selected_menu = 'kubios'
-        elif oled.selected_menu == 'main_menu' and oled.selected_index == 3:
-            oled.selected_menu = 'history'
-    
-    # update history index
-    if oled.selected_menu == 'history':
-        if fifo_value == 1:
-            oled.history_index += 1
-        elif fifo_value == -1:
-            oled.history_index -=1
-    
-    # prevent overscrolling
-    if oled.selected_menu == 'main_menu':
-        oled.selected_index = min(3, max(0, oled.selected_index))
-    elif oled.selected_menu == 'history':
-        oled.history_index = min(len(measurements), max(0, oled.history_index))
-    
-    oled.text(oled.symbol, 5, oled.y + oled.line_height * oled.selected_index) # draw the selection symbol
-    
-    # update display
-    if oled.selected_menu == 'main_menu':
-        oled.main_menu()
-
-    return oled.selected_menu
-
-def change_menu(oled):
-    if oled.selected_menu == 'main_menu':
-        #oled.main_menu()
-        pass
-    elif oled.selected_menu == 'hr':
-        oled.hr_menu()
-    elif oled.selected_menu == 'hrv':
-        # kutsu tässä hrv-datan mittauksen funktiota? Vai tämän funktion jälkeen pääohjelmassa?
-        oled.collecting_data() # updates the oled (measures nothing)
-    elif oled.selected_menu == 'kubios':
-        # kutsu tässä hrv-datan mittauksen funktiota?
-        oled.collecting_data()
-        # lähetä tässä data kubiokseen?
-    elif oled.selected_menu == 'history':
-        oled.history_menu(measurements)
 
 def update_oled():
     pass
@@ -285,19 +202,7 @@ kubios_results = [77, 1000, 23, 22, -1.1, 1.9]
 #measurements = [[55, 1000, 23, 22, 0.5, 1.8], [88, 999, 33, 54, 2.0, -1.5], [], []] # max pituus = 4!
 measurements = [] # test for no history
 
-# Start
-oled.main_menu()
-oled.fill(0)
-
-while True:
-    
-    value = get_fifo_value(rot)
-    
-    if value != None:
-        detect_user_action(oled, value, measurements)
-        oled.fill(0)
-        change_menu(oled)
-    
+  
     
     # TEST PRINTS below this row
     

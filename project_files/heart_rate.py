@@ -44,7 +44,10 @@ class HR:
         except RuntimeError:
             pass
         
-        self.button_flag = not self.button.value() # Check button state (inverted because of  pull_up)
+        #self.button_flag = not self.button.value() # Check button state (inverted because of  pull_up)
+        
+        if not self.button.value() and not self.button_flag: # button down -> flag true
+            self.button_flag = True
     
     # Process raw samples from fifo and move filtered buffer
     def process_samples(self):
@@ -112,10 +115,13 @@ class HR:
                 if len(intervals) >= 3:
                     avg_interval = sum(intervals) // len(intervals)
                     return (60 * 250) // avg_interval      # BPM 
-        return 0     
+        return 0
+    
+    def reset_button(self):
+        self.button_flag = False
     
     # Main program loop
-    def run(self):
+    def run1(self):
         last_button_check = ticks_ms()
         bpm_history = array.array('I', [0] * 5) # Circular buffer to store past 5 BPM readings
         bpm_history_index = 0   
@@ -131,12 +137,20 @@ class HR:
                     
                     if self.measuring:                
                         self.oled.fill(0)
-                        self.oled.text("Measuring...", 0, 10)
+                        self.oled.text("Measuring...", 8, 10)
                         self.oled.show()
                         self.last_display_update = 0   
-                        self.first_valid_bpm = False        
-                    else:
+                        self.first_valid_bpm = False
+                        
+                    else: # measurement stopped
+                        #self.show_menu() # tähän on menu Oledissa
+                        self.oled.fill(0)
+                        self.oled.text('Measurement', 13, 20)
+                        self.oled.text('stopped', 18, 34)
+                        self.oled.show()
+                        sleep(2) # wait for 2 sec
                         self.show_menu()
+                        return False
             
             if self.measuring:
                 current_bpm = self.calculate_bpm()
@@ -151,7 +165,7 @@ class HR:
                     if self.first_valid_bpm and ticks_diff(now, self.last_display_update) >= 3000: # update display every 5s after first valid
                         self.last_display_update = now
                         
-                        bpm = sorted(bpm_history)[2] # Middle value of sorted array,median of last 5 readings 
+                        bpm = sorted(bpm_history)[2] # Middle value of sorted array, median of last 5 readings 
                         self.oled.fill(0)
                         self.oled.text(f"BPM: {bpm}", 20, 10)
                         self.oled.text("Press to STOP", 5, 40)
@@ -160,11 +174,80 @@ class HR:
                 else:
                     if not self.first_valid_bpm:  
                         self.oled.fill(0)
-                        self.oled.text("Measuring...", 0, 10)
+                        self.oled.text("Measuring...", 8, 10)
                         self.oled.show()
             
+            sleep(0.05)       
+            
+    # Main program loop version 2
+    def run2(self):
+        last_button_check = ticks_ms()
+        bpm_history = array.array('I', [0] * 5)  # Circular buffer to store past 5 BPM readings
+        bpm_history_index = 0
+        button_released = True
+        self.measuring = False
+
+        while True:
+            now = ticks_ms()
+
+            if ticks_diff(now, last_button_check) > 300:  # button handling (300ms debounce)
+                last_button_check = now
+
+                if not self.button.value():  # button pressed (remember: 0 = pressed)
+                    if button_released:  # Only react if previously released
+                        button_released = False  # Mark button as pressed
+
+                        if not self.measuring:
+                            self.measuring = True
+                            self.oled.fill(0)
+                            self.oled.text("Measuring...", 8, 10)
+                            self.oled.show()
+                            self.last_display_update = 0
+                            self.first_valid_bpm = False
+                        else:
+                            self.measuring = False
+                            self.button_flag = False
+                            self.oled.fill(0)
+                            self.oled.text('Measurement', 13, 20)
+                            self.oled.text('stopped', 18, 34)
+                            self.oled.show()
+                            sleep(2)  # wait for 2 sec
+                            
+                            return False
+
+                else:
+                    button_released = True  # Button is released -> ready for next press
+
+            if self.measuring:
+                current_bpm = self.calculate_bpm()
+
+                if current_bpm > 0:
+                    bpm_history[bpm_history_index] = current_bpm
+                    bpm_history_index = (bpm_history_index + 1) % len(bpm_history)
+
+                    if not self.first_valid_bpm:
+                        self.first_valid_bpm = True
+
+                    if self.first_valid_bpm and ticks_diff(now, self.last_display_update) >= 3000:
+                        self.last_display_update = now
+
+                        bpm = sorted(bpm_history)[2]  # Middle value of sorted array
+                        self.oled.fill(0)
+                        self.oled.text(f"BPM: {bpm}", 20, 10)
+                        self.oled.text("Press to STOP", 5, 40)
+                        self.oled.show()
+                        print(f"{bpm} bpm")
+                else:
+                    if not self.first_valid_bpm:
+                        self.oled.fill(0)
+                        self.oled.text("Measuring...", 8, 10)
+                        self.oled.show()
+
             sleep(0.05)
-        
+
+"""
 hr = HR()
-hr.run()
-   
+
+while True:
+    hr.run2()
+"""
