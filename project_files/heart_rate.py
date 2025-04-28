@@ -81,7 +81,7 @@ class HR:
         sorted_samples = sorted(self.filtered)  # Sort all filtered values
         low = sorted_samples[len(sorted_samples) // 10]     # Ignore lowest 10%
         high = sorted_samples[len(sorted_samples) * 9 // 10]   # Ignore highest 10%
-        threshold = low + (high - low) * 7 // 10   # threshold = low + 60% of (high-low)
+        threshold = low + (high - low) * 8 // 10   # threshold = low + 60% of (high-low)
         
         # Peak detection
         self.peak_count = 0
@@ -122,7 +122,7 @@ class HR:
 
 # def run1 not working properly, use def run2
 
-"""
+    """
     # Main program loop
     def run1(self):
         last_button_check = ticks_ms()
@@ -180,8 +180,7 @@ class HR:
                         self.oled.text("Measuring...", 8, 10)
                         self.oled.show()
             
-            sleep(0.05)       
-"""
+            sleep(0.05)"""
 
     # Main program loop version 2
     def run2(self):

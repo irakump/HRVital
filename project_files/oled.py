@@ -64,8 +64,8 @@ class Oled:
         sns_index = 'normal'  # initial value
         pns_index = 'normal'
         self.hrv_units = ['BPM', 'ms', 'ms', 'ms']
-        self.kubios_items = ['Avg HR: ', 'Avg PPI: ', 'RMSSD: ', 'SDNN: ', 'SNS: ', 'PNS: ']
-        self.kubios_units = ['BPM', 'ms', 'ms', 'ms', sns_index, pns_index]
+        self.kubios_items = ['', 'Avg HR: ', 'Avg PPI: ', 'RMSSD: ', 'SDNN: ', 'SNS: ', 'PNS: ']
+        self.kubios_units = ['', 'BPM', 'ms', 'ms', 'ms', sns_index, pns_index]
         self.stopping_text = ['Returning main', 'menu in 5 s...', '', 'Press to return']
         self.error_text = ['  DATA ERROR', 'Press to retry', '', 'Menu in 5 s...']
 
@@ -95,10 +95,10 @@ class Oled:
         time.sleep(3)
     
     # HR
-    def hr_menu(self):
+    def start_measurement_menu(self):
         for item in self.start_measurement_texts:
             index = self.start_measurement_texts.index(item)
-            self.text(item, 3, self.y + self.line_height * index)
+            self.text(item, 3, 14 + self.line_height * index)
         
         #self.text(self.stop_text, 5, self.y + self.line_height * (index + 1))
         self.show()
@@ -150,7 +150,7 @@ class Oled:
         for item in self.kubios_items:
             index = self.kubios_items.index(item)
             text = f'{item}{kubios_results[index]} {self.kubios_units[index]}'
-            self.text(text, 0, self.y + 10 * index)
+            self.text(text, 0, self.y + 8 * index)
         
         self.show()
 
@@ -195,31 +195,30 @@ class Oled:
 def update_oled():
     pass
 
+def evaluate_sns_pns(kubios_results):
+    sns = kubios_results[4]
+    pns = kubios_results[5]
+    
+    # sns
+    if sns < -1:
+        sns_index = 'low'
+    elif -1 <= sns < 1:
+        sns_index = 'normal'
+    else:
+        sns_index = 'high'
+    
+    # pns
+    if pns < -1:
+        pns_index = 'low'
+    elif -1 <= pns < 1:
+        pns_index = 'normal'
+    else:
+        pns_index = 'high'        
+    
+    return sns_index, pns_index
 
 # Results for testing
 hrv_results = [77, 1000, 23, 22]
-kubios_results = [77, 1000, 23, 22, -1.1, 1.9]
+kubios_results = ['aikaleima', 77, 1000, 23, 22, -1.1, 1.9]
 #measurements = [[55, 1000, 23, 22, 0.5, 1.8], [88, 999, 33, 54, 2.0, -1.5], [], []] # max pituus = 4!
 measurements = [] # test for no history
-
-  
-    
-    # TEST PRINTS below this row
-    
-    #oled.main_menu()
-    
-    #oled.collecting_data()
-    #oled.hrv_data_collected()
-
-    #oled.show_hrv_results(hrv_results)
-    
-    #oled.hr_menu()
-    #oled.show_hr(99)
-    
-    #oled.stopping_message()
-    #oled.error_message()
-
-    #oled.show_kubios_results(kubios_results)
-    
-    #oled.history_menu(measurements)
-    #oled.show_selected_history(measurements)
