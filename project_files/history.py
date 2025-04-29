@@ -3,15 +3,15 @@ import json
 
 
 ### History ###
-# four previous data points are saved to one file, history.json
-# data point includes information about data and time, mean hr, mean ppi, rmssd and sdnn (+ sns and pns)
-# saving a new data point increases previous data points indexes (index keeps track of data point order)
-# after saving a fifth data point (to first index), the oldest data point is deleted (fifth index)
+# four previous measurements are saved to one file, history.json
+# measurement includes information about date and time, mean hr, mean ppi, rmssd and sdnn (+ sns and pns)
+# saving a new measurement increases previous measurements indexes (index keeps track of creation order)
+# after saving a fifth measurement (to first index), the oldest measurement is deleted (fifth index)
 
 
 class History:
     def __init__(self):
-        self.max_histories_to_store = 4  # max histories saved at one time
+        self.max_measurements = 4  # max histories saved at one time
         self.history_file_name = 'history.json'  # all history data is stored in this file
     
     def read_from_history_file(self):
@@ -36,27 +36,19 @@ class History:
     
     def combine_new_data_with_old_data(self, new_data):
         data = dict()
+        # add newest data as first index
+        data.update({1: new_data})
         
         # extend history file with new data if file exists, otherwise replace content (which doesn't exist anyway)
         existing_data = self.read_from_history_file()
         
         if existing_data:
-            # shift all existing data indexes up by one
-            shifted_existing_data = dict()
+            # increase existing data indexes
             for key, value in existing_data.items():
                 new_index = int(key) + 1
-                shifted_existing_data.update({new_index: value})
-            
-            data = shifted_existing_data
-        
-        # add newest data as first index
-        data.update({1: new_data})
-        
-        # remove entry if its index is larger than maximum allowed
-        while len(data) > self.max_histories_to_store:
-            for key, value in data.items():
-                if key > self.max_histories_to_store:
-                    data.pop(key)
+                # only save data if its index is within max
+                if new_index <= self.max_measurements:
+                    data.update({new_index: value})
         return data
     
     def save_to_history(self, new_data):
@@ -82,4 +74,4 @@ history = History()
 #history.save_to_history('this is placeholder')
 
 #data = history.read_from_history_file()
-#print(data)
+#print(len(data), data)
