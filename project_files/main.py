@@ -30,21 +30,21 @@ oled.fill(0)
 oled.main_menu()
 oled.fill(0)
 
+# Main loop
 while True:
     value = menu.get_fifo_value()
     
     if value is not None:
-        previous_selected_menu = oled.selected_menu
-        print(f'previous menu: {previous_selected_menu}')
         
         menu.detect_user_action(value)
         oled.fill(0)
         
-        if oled.selected_menu != previous_selected_menu:
-            oled.selected_menu = menu.change_menu()
-        else:
-            menu.change_menu()
-  
+        # to compare values (may not be necessary)
+        #previous_menu = oled.selected_menu
+        #new_menu = menu.run_selected_menu()
+
+        menu.run_selected_menu()
+        
     
     # TEST PRINTS below this row
     
