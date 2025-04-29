@@ -1,7 +1,7 @@
 from oled import Encoder, Oled
 from heart_rate import HR
 import time
-from basic_hrv_analysis_v2 import BasicHRVAnalysis
+from basic_hrv_analysis import BasicHRVAnalysis
 from menu import Menu
 
 # Results for testing
@@ -18,7 +18,7 @@ hrv = BasicHRVAnalysis()
 menu = Menu(oled, rot, hr, hrv, measurements) # measurements-lista (kubios-mittauksesta!)
 
 # TODO: hrv-mittauksen funktion sisään importaa rot (handler)
-# history-logiikka ja paluu menuun
+# history-logiikka ja paluu menuun + mark liikuttelu, kun rotarya pyöritetään
 # oledista: stopping ja error texts näyttö, jos error tai hrv datan keräys epäonnistuu
 
 # kaikki tiedostot pitää tallentaa picolle, jotta import toimii
