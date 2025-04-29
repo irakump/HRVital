@@ -108,9 +108,6 @@ class Oled:
         self.text(self.stop_text, 5, self.y + self.line_height * 3)
         self.show()
     
-    # TODO: from live_pulse.py: yhdistä show_hr ja live pulsen show_ppg_signal_on_oled funktiot!
-    
-    
     # HRV
     def collecting_data(self): # käytä samaa myös Kubiokseen
         for item in self.data_collection_texts:
@@ -135,8 +132,8 @@ class Oled:
         
         self.show()
         
-        
-    # Kubios
+    """    
+    # Kubios (first version)
     def show_kubios_results(self, kubios_results):
         sns_pns = evaluate_sns_pns(kubios_results) # get sns and pns index value (normal, low or high)
         sns_index = sns_pns[0]
@@ -151,8 +148,24 @@ class Oled:
             text = f'{item}{kubios_results[index]} {self.kubios_units[index]}'
             self.text(text, 0, self.y + 8 * index)
         
+        self.show()"""
+    
+    # Kubios (2nd version)
+    def show_kubios_results(self, measurements):
+        sns_pns = evaluate_sns_pns(measurements) # get sns and pns index value (normal, low or high)
+        sns_index = sns_pns[0]
+        pns_index = sns_pns[1]
+        
+        # update indexed to the units list
+        self.kubios_units[4] = sns_index
+        self.kubios_units[5] = pns_index
+        
+        for item in self.kubios_items:
+            index = self.kubios_items.index(item)
+            text = f'{item}{measurements[index]} {self.kubios_units[index]}'
+            self.text(text, 0, self.y + 8 * index)
+        
         self.show()
-
     
     # History -> voi tallentaa max 4 edellistä mittausta
     def history_menu(self, measurements): # parametrina Kubios-mittauksen tuloksia listassa: [[],[],[]] -> listoja listan sisällä?
@@ -188,11 +201,7 @@ class Oled:
            index = self.error_text.index(item)
            self.text(item, 8, self.y + self.line_height * index)
     
-        self.show() 
-
-
-def update_oled():
-    pass
+        self.show()
 
 def evaluate_sns_pns(kubios_results):
     sns = kubios_results[4]

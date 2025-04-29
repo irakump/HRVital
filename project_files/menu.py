@@ -17,7 +17,7 @@ class Menu:
 
         return None  # returns none, if fifo empty
 
-    def detect_user_action(self, fifo_value):  # tarvitsee nyt parametrina listan kubios-mittauksista = measurements
+    def detect_user_action(self, fifo_value):
         # read fifo value
         if fifo_value == 1:
             self.oled.selected_index += 1
@@ -34,6 +34,7 @@ class Menu:
                 self.oled.history_index += 1
             elif fifo_value == -1:
                 self.oled.history_index -= 1
+            print(f'history index: {self.oled.history_index}')
 
         # prevent overscrolling
         if self.oled.selected_menu == 'main_menu':
@@ -79,7 +80,7 @@ class Menu:
                 self.oled.main_menu()
                 time.sleep(0.1)
 
-                return self.oled.selected_menu  # return to main loop
+                #return self.oled.selected_menu  # return to main loop
 
         elif self.oled.selected_menu == 'hrv':
             self.oled.start_measurement_menu()  # show the start menu
@@ -97,7 +98,7 @@ class Menu:
 
             self.oled.show_hrv_results(hrv_results)  # show results
             self.return_main_menu_after_button_press()  # return main menu
-            return self.oled.selected_menu
+            #return self.oled.selected_menu
 
         elif self.oled.selected_menu == 'kubios':
             self.oled.start_measurement_menu()  # show the start menu
@@ -108,20 +109,44 @@ class Menu:
 
             # oled.hrv_data_collected() -> näytä kun mittaus valmis
             # lähetä tässä data kubiokseen?
-            return self.oled.selected_menu
+            #return self.oled.selected_menu
 
         elif self.oled.selected_menu == 'history':
             self.oled.history_menu(self.measurements)
+            
+            print(f'history index change menu -funktiosta: {self.oled.history_index}')
+            
+            # TODO: mark liikuttelu, kun rotarya pyöritetään !!!!
+            
+            # wait for user to choose the measurement
+            self.wait_for_button_press()
+            
+            value = self.get_fifo_value()
+            detect_user_action(value)
+            
+            if (self.oled.history_index is not None and
+                0 <= self.oled.history_index < len(self.measurements)):
+                
+                # history measurements indexes can be 0 to 4 if list is full
+                if self.oled.history_index < (len(self.measurements) - 1):
+                    
+                    # show chosen measurement
+                    chosen_measurement = self.measurements[self.oled.history_index]
+                    self.oled.show_kubios_results(chosen_measurement)
+                    
+                else: # last index: return to main menu (if list is full: index = 5)
+                    self.oled.selected_menu = 'main_menu'
+            
+            
             # TODO: logiikka valinnalle (ks. main menun logiikka)
-            # rivien lkm riippuu measurements-listan koosta (max 4)
-            # -> indeksien mukaan mittauksen valinta? indeksi 0 -> measurements[0]?
-            # detect_user_action-funktiossa on history_index
+            # näytä kubios-mittauksen tulokset
 
             # tests, not working
             # value = get_fifo_value(rot)
             # detect_user_action(oled, value, measurements)
             # oled.text(oled.symbol, 5, oled.y + oled.line_height * oled.history_index)
-            return self.oled.selected_menu
+        
+        return self.oled.selected_menu
 
     def wait_for_button_press(self):  # wait for user to press the button
         while True:
