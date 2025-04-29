@@ -135,7 +135,6 @@ class BasicHRVAnalysis:
         print(f'mean_hr: {mean_hr:.0f}')
         
         # return calculated values
-        #return mean_hr, mean_ppi, rmssd, sdnn
-
+        return (int(mean_hr), int(mean_ppi), int(rmssd), int(sdnn))
 
 #BasicHRVAnalysis().get_basic_hrv_analysis()
