@@ -6,7 +6,6 @@ from led import Led
 import micropython 
 micropython.alloc_emergency_exception_buf(200)
 
-
 class Encoder:
     def __init__(self):
         self.a = Pin(10, mode = Pin.IN, pull = Pin.PULL_UP)
