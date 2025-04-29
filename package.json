@@ -12,7 +12,8 @@
     ["oled.py", "http://localhost:8000/project_files/oled.py"],
     ["basic_hrv_analysis_v2.py", "http://localhost:8000/project_files/basic_hrv_analysis_v2.py"],
     ["main.py", "http://localhost:8000/project_files/main.py"],
-    ["heart_rate.py", "http://localhost:8000/project_files/heart_rate.py"]
+    ["heart_rate.py", "http://localhost:8000/project_files/heart_rate.py"],
+    ["menu.py", "http://localhost:8000/project_files/menu.py"]
   ],
   "deps": [
   ],
