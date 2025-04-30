@@ -13,7 +13,8 @@
     ["basic_hrv_analysis.py", "http://localhost:8000/project_files/basic_hrv_analysis.py"],
     ["main.py", "http://localhost:8000/project_files/main.py"],
     ["heart_rate.py", "http://localhost:8000/project_files/heart_rate.py"],
-    ["menu.py", "http://localhost:8000/project_files/menu.py"]
+    ["menu.py", "http://localhost:8000/project_files/menu.py"],
+    ["mqtt.py", "http://localhost:8000/project_files/mqtt.py"]
   ],
   "deps": [
   ],
