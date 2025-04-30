@@ -9,7 +9,7 @@ import micropython
 micropython.alloc_emergency_exception_buf(200)
 
 
-timezone_time = 2  # input your timezone for accurate kubios timestamp
+timezone_time = 3  # input your timezone for accurate kubios timestamp
 
 
 # this is done as pico board timezone is UTC (+0)
@@ -42,13 +42,13 @@ class Mqtt:
     BROKER_IP = "192.168.1.253"
     PORT = 21883
     
-    kubios_topic_pub = "kubios-request"  # topic to send ppi data to kubios
-    kubios_topic_sub = "kubios-response"  # topic to listen for response from kubios
-    basic_hrv_analysis_topic = "hrv_analysis"  # topic to send basic hrv analysis to
-
     def __init__(self):
         self.connect_mqtt()
         self.kubios_result = False
+        
+        self.kubios_topic_pub = "kubios-request"  # topic to send ppi data to kubios
+        self.kubios_topic_sub = "kubios-response"  # topic to listen for response from kubios
+        self.basic_hrv_analysis_topic = "hrv_analysis"  # topic to send basic hrv analysis to
     
     # Connect to MQTT
     def connect_mqtt(self):
@@ -64,6 +64,7 @@ class Mqtt:
         # decode message and transform it into dict
         json_string = message.decode()
         self.kubios_result = ujson.loads(json_string)
+        #print(self.kubios_result)
 
     # Send MQTT message
     def send_message_to_mqtt(self, message, topic):
@@ -123,7 +124,13 @@ class Mqtt:
         self.send_message_to_mqtt(message, self.kubios_topic_pub)
         self.listen_message_from_mqtt(topic=self.kubios_topic_sub)
         
+        # return string telling analysis could not be performed if data has value "Invalid request"
+        # this happens when there aren't enough ppis to perform the analysis
+        # otherwise return formatted response
+        if self.kubios_result["data"] == "Invalid request":
+            return "Could not perform Kubios analysis"
         return self.format_kubios_response()
+        
     
     def send_basic_hrv_analysis_results_to_mqtt(self, message):
         # send basic hrv analysis results to hrv_analysis topic on mqtt
@@ -132,7 +139,7 @@ class Mqtt:
         self.send_message_to_mqtt(message, self.basic_hrv_analysis_topic)
     
     def testi_kubios_tulos(self, ppis):
-        # testifunktio tulosten printtaamiseen
+        # testifunktio tulosten printtaamiseen näytölle
         ppis = [828, 836, 852, 760, 800, 796, 856, 824, 808, 776, 724, 816, 800, 812, 812, 812, 756, 820, 812, 800]
         result = {'sns': 1.767119, 'mean_hr': 74.53416, 'timestamp': '30.4.2025 - 12:59', 'mean_ppi': 805, 'rmssd': 42.90517, 'sdnn': 30.65533, 'pns': -0.3011305}
         
