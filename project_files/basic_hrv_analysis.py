@@ -7,6 +7,8 @@ import time
 from collect_data import collect_data_n_seconds
 from live_pulse import ScaleSamples
 
+from mqtt import Mqtt
+
 
 class HeartRate:
     def __init__(self):
@@ -66,6 +68,9 @@ class HeartRate:
 class BasicHRVAnalysis:
     def __init__(self):
         self.freq = 250
+        
+        self.valid_lowest_ppi = 300  # equal to 30bpm
+        self.valid_highest_ppi = 2400  # equal to 240bpm
     
     def get_ppis(self, peaks):
         all_ppis = []
@@ -74,7 +79,7 @@ class BasicHRVAnalysis:
         for i in range(len(peaks) - 1):
             interval_samples = peaks[i + 1] - peaks[i]  # samples between two consecutive peaks
             ppi = interval_samples / self.freq * 1000  # samples in ms
-            all_ppis.append(ppi)
+            all_ppis.append(int(ppi))
         
         print('all_ppis before discard', len(all_ppis), all_ppis)
         
@@ -83,15 +88,32 @@ class BasicHRVAnalysis:
         # it results in too high rmssd and sdnn values
         
         # discard abnormally high or low ppis
-        mean_ppi = self.get_mean_ppi(all_ppis)
+        #mean_ppi = self.get_mean_ppi(all_ppis)
+        """
         variability_range = 200
         low = mean_ppi - variability_range
         high = mean_ppi + variability_range
         print(low, high, mean_ppi)
+        """
         
-        all_ppis = [ppi for ppi in all_ppis if low <= ppi <= high]
-        print('all_ppis after discard', len(all_ppis), all_ppis)
-        return all_ppis
+        # discard ppis which are lower than lowest and higher than highest possible ppis
+        all_ppis = [int(ppi) for ppi in all_ppis if self.valid_lowest_ppi <= ppi <= self.valid_highest_ppi]
+        
+        valid_ppis = []
+        for index in range(1, len(all_ppis) - 1):
+            ppi = all_ppis[index]
+            previous_ppi = all_ppis[index - 1]
+            #print(ppi, previous_ppi)
+            # check if adjacent ppis are within 20% of each other
+            if abs(ppi - previous_ppi) <= 0.2 * max(ppi, previous_ppi):
+                valid_ppis.append(int(ppi))
+            
+            
+        # discard ppis which differ more than 20% from previous ppi
+        #all_ppis = [all_ppis[index] for index in range(1, len(all_ppis) - 1) if ]
+        
+        print('all_ppis after discard', len(valid_ppis), valid_ppis)
+        return valid_ppis
 
     def get_mean_ppi(self, all_ppis):
         # get mean ppi of all ppis
@@ -134,7 +156,14 @@ class BasicHRVAnalysis:
         mean_hr = sum(hrs) / len(hrs)
         print(f'mean_hr: {mean_hr:.0f}')
         
+        kubios_result = Mqtt().get_kubios_analysis_result(all_ppis)
+        print(kubios_result)
+        
+        # testaamiseen, poista lopullisesta versiosta
+        #message = {"mean_hr": mean_hr, "mean_ppi": mean_ppi, "rmssd": rmssd, "sdnn": sdnn}
+        #Mqtt().send_basic_hrv_analysis_results_to_mqtt(message)
+        
         # return calculated values
         return (int(mean_hr), int(mean_ppi), int(rmssd), int(sdnn))
 
-#BasicHRVAnalysis().get_basic_hrv_analysis()
+BasicHRVAnalysis().get_basic_hrv_analysis()
