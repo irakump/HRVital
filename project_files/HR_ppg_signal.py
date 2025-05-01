@@ -55,9 +55,12 @@ class HR:
         self.show_menu()
 
 
-    # ISR, gets pulse sensor reading 250 times per second
+    # ISR called 250 times/second by hardware timer
     def sample_isr(self, timer):
-        self.samples_fifo.put(self.sensor.read_u16())
+        next_head = (self.samples_fifo.head + 1) % self.samples_fifo.size  # Calculate next write position
+        if next_head != self.samples_fifo.tail:  # Only store sample if buffer isn't full (tail check prevents overflow)
+            self.samples_fifo.put(self.sensor.read_u16())
+   
    
     # Handles button presses
     def button_handler(self, pin):
