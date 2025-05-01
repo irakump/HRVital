@@ -129,7 +129,6 @@ class Mqtt:
         # otherwise return formatted response
         if self.kubios_result["data"] == "Invalid request":
             return "Could not perform Kubios analysis"
-            #return {'invalid_request': "Could not perform Kubios analysis"}
         return self.format_kubios_response()
         
     
@@ -139,20 +138,12 @@ class Mqtt:
         message = ujson.dumps(message).encode()
         self.send_message_to_mqtt(message, self.basic_hrv_analysis_topic)
     
-    @staticmethod
-    def testi_kubios_tulos(ppis):
+    def testi_kubios_tulos(self): #(self, ppis):
         # testifunktio tulosten printtaamiseen näytölle
         ppis = [828, 836, 852, 760, 800, 796, 856, 824, 808, 776, 724, 816, 800, 812, 812, 812, 756, 820, 812, 800]
-        result = {'sns': 1.767119, 'mean_hr': 74.53416, 'timestamp': '30.4.2025 - 12:59', 'mean_ppi': 805, 'rmssd': 42.90517, 'sdnn': 30.65533, 'pns': -0.3011305}
-        # huom!!!!
-        #"Could not perform Kubios analysis" voi myös olla tulos, ota huomioon
-        # voi esim testata onko dict arvo 'invalid_request', jos on tulosta tämä, jos ei tulosta ylempi
-        #result = {'invalid_request': 'Could not perform Kubios analysis'}
-        #print('invalid_request' in result)  # testi
+        result1 = {'sns': 1.767119, 'mean_hr': 74.53416, 'timestamp': '30.4.2025 - 12:59', 'mean_ppi': 805, 'rmssd': 42.90517, 'sdnn': 30.65533, 'pns': -0.3011305}
+        result = ['30.4.2025 - 12:59', 74, 805, 43, 31, 1.8, -0.3]
         
-        
-        
-        # erilaisia oikeita tulostuksia eri ppi arvoilla
         #ppis = [828, 836, 824, 808, 776, 724, 816, 800, 812, 756, 820, 812, 800]
         #result = {'sns': 2.240657, 'mean_hr': 74.91356, 'timestamp': '30.4.2025 - 13:19', 'mean_ppi': 800.9232, 'rmssd': 41.12286, 'sdnn': 30.65182, 'pns': -0.3887478}
         
@@ -160,15 +151,9 @@ class Mqtt:
         #result = {'sns': 1.353096, 'mean_hr': 74.61257, 'timestamp': '30.4.2025 - 13:20', 'mean_ppi': 804.1537, 'rmssd': 47.97943, 'sdnn': 39.5884, 'pns': -0.2460783}
         return result
 
-###################
-# kutsu tätä testaamiseen, ei kutsu __init__
-#result = Mqtt.testi_kubios_tulos(["ppi lista tänne"])
-#print(result)
-###################
-
 # kubios
 """
-# joskus tulee ongelma jos ppis ei ole lista vaikka onhan se (jos sen kopioi tähän muualta) -> syy on liian vähän ppi arvoja
+# joskus tulee ongelma jos ppis ei ole lista vaikka onhan se (jos sen kopioi tähän muualta)
 ppis = [818, 836, 824, 848, 776, 754, 816, 800, 732, 756, 820, 872, 802]
 print(Mqtt().get_kubios_analysis_result(ppis))
 """
