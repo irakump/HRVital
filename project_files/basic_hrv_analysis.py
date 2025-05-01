@@ -156,8 +156,8 @@ class BasicHRVAnalysis:
         mean_hr = sum(hrs) / len(hrs)
         print(f'mean_hr: {mean_hr:.0f}')
         
-        kubios_result = Mqtt().get_kubios_analysis_result(all_ppis)
-        print(kubios_result)
+        #kubios_result = Mqtt().get_kubios_analysis_result(all_ppis)
+        #print(kubios_result)
         
         # testaamiseen, poista lopullisesta versiosta
         #message = {"mean_hr": mean_hr, "mean_ppi": mean_ppi, "rmssd": rmssd, "sdnn": sdnn}
@@ -165,5 +165,6 @@ class BasicHRVAnalysis:
         
         # return calculated values
         return (int(mean_hr), int(mean_ppi), int(rmssd), int(sdnn))
+        #return (all_ppis) # tämä pitää palauttaa kubiosta varten!
 
-BasicHRVAnalysis().get_basic_hrv_analysis()
+#BasicHRVAnalysis().get_basic_hrv_analysis()
