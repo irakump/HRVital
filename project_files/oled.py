@@ -131,28 +131,11 @@ class Oled:
             self.text(text, 0, self.y + self.line_height * index)
         
         self.show()
-        
-    """    
-    # Kubios (first version)
-    def show_kubios_results(self, kubios_results):
-        sns_pns = evaluate_sns_pns(kubios_results) # get sns and pns index value (normal, low or high)
-        sns_index = sns_pns[0]
-        pns_index = sns_pns[1]
-        
-        # update indexed to the units list
-        self.kubios_units[4] = sns_index
-        self.kubios_units[5] = pns_index
-        
-        for item in self.kubios_items:
-            index = self.kubios_items.index(item)
-            text = f'{item}{kubios_results[index]} {self.kubios_units[index]}'
-            self.text(text, 0, self.y + 8 * index)
-        
-        self.show()"""
     
     # Kubios (2nd version)
-    def show_kubios_results(self, measurements):
-        sns_pns = evaluate_sns_pns(measurements) # get sns and pns index value (normal, low or high)
+    def show_kubios_results(self, kubios_result): # vai chosen_measurement parametriksi?
+        sns_pns = evaluate_sns_pns(kubios_result) # get sns and pns index value (normal, low or high)
+        # yllä 2 riviä: parametrina pitää antaa measurements[index] eli vain yksi mittaus
         sns_index = sns_pns[0]
         pns_index = sns_pns[1]
         
@@ -162,7 +145,9 @@ class Oled:
         
         for item in self.kubios_items:
             index = self.kubios_items.index(item)
-            text = f'{item}{measurements[index]} {self.kubios_units[index]}'
+            print(f'kubios items -listan indeksi: {index}')
+            #text = f'{item}{self.measurements[index]} {self.kubios_units[index]}' # versio 1
+            text = f'{item}{kubios_result[index]} {self.kubios_units[index]}'
             self.text(text, 0, self.y + 8 * index)
         
         self.show()
@@ -203,9 +188,9 @@ class Oled:
     
         self.show()
 
-def evaluate_sns_pns(kubios_results):
-    sns = kubios_results[4]
-    pns = kubios_results[5]
+def evaluate_sns_pns(kubios_result):
+    sns = kubios_result[4]
+    pns = kubios_result[5]
     
     # sns
     if sns < -1:
@@ -227,6 +212,6 @@ def evaluate_sns_pns(kubios_results):
 
 # Results for testing
 hrv_results = [77, 1000, 23, 22]
-kubios_results = ['aikaleima', 77, 1000, 23, 22, -1.1, 1.9]
+kubios_result = ['aikaleima', 77, 1000, 23, 22, -1.1, 1.9]
 #measurements = [[55, 1000, 23, 22, 0.5, 1.8], [88, 999, 33, 54, 2.0, -1.5], [], []] # max pituus = 4!
-measurements = [] # test for no history
+#measurements = [] # test for no history

@@ -6,8 +6,8 @@ from menu import Menu
 
 # Results for testing
 #hrv_results = [77, 1000, 23, 22]
-kubios_results = ['aikaleima', 77, 1000, 23, 22, -1.1, 1.9]
-measurements = [['aikaleima', 55, 1000, 23, 22, 0.5, 1.8], ['aikaleima', 88, 999, 33, 54, 2.0, -1.5], [], []] # max pituus = 4!
+kubios_result = ['aikaleima', 77, 1000, 23, 22, -1.1, 1.9]
+measurements = [['aikaleima', 55, 1000, 23, 22, 0.5, 1.8], ['aikaleima', 88, 999, 33, 54, 2.0, -1.5], ['aikaleima', 72, 878, 29, 51, 1.0, -1.1]] # max pituus = 4!
 #measurements = [] # test for no history
 
 # Definitions
@@ -18,7 +18,6 @@ hrv = BasicHRVAnalysis()
 menu = Menu(oled, rot, hr, hrv, measurements) # measurements-lista (kubios-mittauksesta!)
 
 # TODO: hrv-mittauksen funktion sisään importaa rot (handler)
-# history-logiikka ja paluu menuun + mark liikuttelu, kun rotarya pyöritetään
 # oledista: stopping ja error texts näyttö, jos error tai hrv datan keräys epäonnistuu
 
 # kaikki tiedostot pitää tallentaa picolle, jotta import toimii
@@ -32,11 +31,10 @@ oled.fill(0)
 
 # Main loop
 while True:
-    value = menu.get_fifo_value()
+    button_value = menu.get_fifo_value()
     
-    if value is not None:
-        
-        menu.detect_user_action(value)
+    if button_value is not None:
+        menu.detect_user_action(button_value)
         oled.fill(0)
         
         # to compare values (may not be necessary)
@@ -61,7 +59,7 @@ while True:
     #oled.stopping_message()
     #oled.error_message()
 
-    #oled.show_kubios_results(kubios_results)
+    #oled.show_kubios_results(kubios_result)
     
 #oled.history_menu(measurements)
 #oled.show_selected_history(measurements)
