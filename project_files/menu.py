@@ -8,6 +8,7 @@ class Menu:
         self.hr = hr
         self.hrv = hrv
         self.measurements = measurements
+        #self.mqtt = mqtt
         
     def get_fifo_value(self):
         if self.rot.fifo.has_data():
@@ -132,15 +133,26 @@ class Menu:
         self.oled.selected_index = 0 # update select mark to top of the oled
         self.return_main_menu_after_button_press()
     
-    def run_kubios(self): # KESKEN
+    def run_kubios(self): # KESKEN (ei vielä testattu, 1.5.)
         self.oled.start_measurement_menu()  # show the start menu
         self.wait_for_button_press()
-
         self.oled.collecting_data()
-        # kutsu tässä hrv-datan mittauksen funktiota
+        
+        # Collect HRV data
+        all_ppis = self.hrv.get_basic_hrv_analysis() # funktion pitää palauttaa ppi:t!
+        self.oled.hrv_data_collected()
+        time.sleep(1.5) # show data collected -text for 1.5 sec
+        self.oled.fill(0)
+        self.oled.show_sending_data_text() # show sending data -text until Kubios is ready
+        
+        # Send data to Kubios and show result
+        kubios_result = get_kubios_analysis_result(all_ppis)
+        self.oled.fill(0)
+        self.oled.show_kubios_result(kubios_result)
+        self.oled.selected_index = 0
+        self.return_main_menu_after_button_press() # go back to main menu
 
-        # oled.hrv_data_collected() -> näytä kun mittaus valmis
-        # lähetä tässä data kubiokseen?
+        #self.testi_kubios_tulos()
                         
     def run_history(self):
         in_history_menu = True

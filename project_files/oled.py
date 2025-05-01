@@ -57,8 +57,9 @@ class Oled:
         # Text settings
         self.start_measurement_texts = ['Touch the sensor', '   and press', '   to START']
         self.stop_text = '(Press to stop)'
-        self.data_collection_texts = ['  Collecting', '    data...', ' Wait for 30 s'] # laskuri numeron kohdalle? # saisiko pisteet liikkumaan?
-        self.data_collected_texts = ['Data collected', '', '  Displaying', '  results...'] # pisteet liikkumaan..?
+        self.data_collection_texts = ['  Collecting', '    data...', ' Wait for 30 s']
+        self.data_collected_texts = ['Data collected', '', '  Displaying', '  results...']
+        self.sending_data_texts = ['', 'Sending', 'data...']
         self.hrv_items = ['Avg HR: ', 'Avg PPI: ', 'RMSSD: ', 'SDNN: ']
         sns_index = 'normal'  # initial value
         pns_index = 'normal'
@@ -121,9 +122,16 @@ class Oled:
         for item in self.data_collected_texts:
             index = self.data_collected_texts.index(item)
             self.text(item, 5, self.y + self.line_height * index)
-    
+            
         self.show()
     
+    def show_sending_data_text(self):
+        for item in self.sending_data_texts:
+            index = self.sending_data_texts.index(item)
+            self.text(item, 33, self.y + self.line_height * index)
+        
+        self.show()
+        
     def show_hrv_results(self, hrv_results):
         for item in self.hrv_items:
             index = self.hrv_items.index(item)
@@ -132,10 +140,9 @@ class Oled:
         
         self.show()
     
-    # Kubios (2nd version)
-    def show_kubios_results(self, kubios_result): # vai chosen_measurement parametriksi?
-        sns_pns = evaluate_sns_pns(kubios_result) # get sns and pns index value (normal, low or high)
-        # yllä 2 riviä: parametrina pitää antaa measurements[index] eli vain yksi mittaus
+    # Kubios
+    def show_kubios_results(self, kubios_result):
+        sns_pns = evaluate_sns_pns(kubios_result) # get sns and pns index value
         sns_index = sns_pns[0]
         pns_index = sns_pns[1]
         
@@ -152,7 +159,7 @@ class Oled:
         
         self.show()
     
-    # History -> voi tallentaa max 4 edellistä mittausta
+    # History
     def history_menu(self, measurements): # parametrina Kubios-mittauksen tuloksia listassa: [[],[],[]] -> listoja listan sisällä?
         for i in range(len(measurements)):
             text = f'Measurement {i + 1}'
@@ -171,8 +178,7 @@ class Oled:
         selected_measurement = measurements[index]
         
         self.show_kubios_results(selected_measurement)
-            
-    
+
     # Stop and error
     def stopping_message(self):
         for item in self.stopping_text:
