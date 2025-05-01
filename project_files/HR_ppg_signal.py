@@ -129,7 +129,7 @@ class HR:
         
         while self.samples_fifo.has_data() and count < 750:  # ensure don't write more than 750 samples (self.filtered) at once
             # calculate index in the (self.filtered), wrapping around at the end(749).
-            # example: if write_index 748 and count 1 ((748+1)%750=748) writes 748.
+            # example: if write_index 748 and count 1 (748+1)%750=749 writes 749. (748+2)%750=0
             self.filtered[(self.write_index + count) % 750] = self.samples_fifo.get() 
             count += 1  # move to the next sample
         
