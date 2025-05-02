@@ -131,7 +131,8 @@ class Oled:
             self.text(item, 33, self.y + self.line_height * index)
         
         self.show()
-        
+    
+    # HRV results
     def show_hrv_results(self, hrv_results):
         for item in self.hrv_items:
             index = self.hrv_items.index(item)
@@ -140,7 +141,7 @@ class Oled:
         
         self.show()
     
-    # Kubios
+    # Kubios results
     def show_kubios_results(self, kubios_result):
         # get sns and pns index value
         sns_index, pns_index = evaluate_sns_pns(kubios_result)
@@ -149,7 +150,9 @@ class Oled:
         self.kubios_units[5] = sns_index
         self.kubios_units[6] = pns_index
         
-        # loop through yksiköt and add each vastaava result to display buffer
+        # loop through units (ms, bpm)
+        # and put it after kubios result to make a formatted string
+        # add formatted string to display buffer
         for item in self.kubios_items:
             index = self.kubios_items.index(item)
             
@@ -164,22 +167,12 @@ class Oled:
             elif index == 4:
                 result = int(kubios_result['sdnn'])
             elif index == 5:
-                result = round(kubios_result['pns'], 1)
-            elif index == 6:
                 result = round(kubios_result['sns'], 1)
+            elif index == 6:
+                result = round(kubios_result['pns'], 1)
             
             text = f'{item}{result} {self.kubios_units[index]}'
             self.text(text, 0, self.y + 8 * index)
-            
-        
-        """
-        for item in self.kubios_items:
-            index = self.kubios_items.index(item)
-            print(f'kubios items -listan indeksi: {index}')
-            #text = f'{item}{self.measurements[index]} {self.kubios_units[index]}' # versio 1
-            text = f'{item}{kubios_result[index]} {self.kubios_units[index]}'
-            self.text(text, 0, self.y + 8 * index)
-        """
         self.show()
     
     # History
@@ -237,9 +230,3 @@ def evaluate_sns_pns(kubios_result):
         pns_index = 'high'        
     
     return sns_index, pns_index
-
-# Results for testing
-hrv_results = [77, 1000, 23, 22]
-kubios_result = ['aikaleima', 77, 1000, 23, 22, -1.1, 1.9]
-#measurements = [[55, 1000, 23, 22, 0.5, 1.8], [88, 999, 33, 54, 2.0, -1.5], [], []] # max pituus = 4!
-#measurements = [] # test for no history
