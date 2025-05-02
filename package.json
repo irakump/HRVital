@@ -6,7 +6,7 @@
     ["lib/piotimer.py", "http://localhost:8000/pico-lib/piotimer.py"],
     ["lib/ssd1306.mpy", "http://localhost:8000/pico-lib/ssd1306.mpy"],
     ["lib/umqtt/simple.mpy", "http://localhost:8000/pico-lib/umqtt/simple.mpy"],
-    ["collect_data.py", "http://localhost:8000/project_files/collect_data.py"],
+    ["collect_data_v2.py", "http://localhost:8000/project_files/collect_data_v2.py"],
     ["live_pulse.py", "http://localhost:8000/project_files/live_pulse.py"],
     ["history.py", "http://localhost:8000/project_files/history.py"],
     ["oled.py", "http://localhost:8000/project_files/oled.py"],
@@ -15,7 +15,8 @@
     ["heart_rate.py", "http://localhost:8000/project_files/heart_rate.py"],
     ["menu.py", "http://localhost:8000/project_files/menu.py"],
     ["mqtt.py", "http://localhost:8000/project_files/mqtt.py"],
-    ["kubios.py", "http://localhost:8000/project_files/kubios.py"]
+    ["kubios.py", "http://localhost:8000/project_files/kubios.py"],
+    ["HR_ppg_signal.py", "http://localhost:8000/project_files/HR_ppg_signal.py"]
   ],
   "deps": [
   ],

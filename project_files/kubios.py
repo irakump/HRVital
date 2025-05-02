@@ -1,4 +1,4 @@
-from collect_data import collect_data_n_seconds
+from collect_data_v2 import collect_data_n_seconds
 from basic_hrv_analysis import HeartRate, BasicHRVAnalysis
 from mqtt import Mqtt
 import ujson

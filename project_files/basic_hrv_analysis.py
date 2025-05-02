@@ -4,7 +4,7 @@ from machine import Pin, ADC, I2C
 from ssd1306 import SSD1306_I2C
 import time
 
-from collect_data import collect_data_n_seconds
+from collect_data_v2 import collect_data_n_seconds
 from live_pulse import ScaleSamples
 
 from mqtt import Mqtt
