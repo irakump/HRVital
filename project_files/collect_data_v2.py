@@ -3,47 +3,13 @@ from piotimer import Piotimer
 from machine import Pin, ADC, I2C
 from ssd1306 import SSD1306_I2C
 import time
-#from oled import Encoder # rotary encoder -> poista?
-
-# kopioitu, poista
-class Encoder:
-    def __init__(self):
-        self.a = Pin(10, mode = Pin.IN, pull = Pin.PULL_UP)
-        self.b = Pin(11, mode = Pin.IN, pull = Pin.PULL_UP)
-        self.a.irq(handler = self.scroll_handler, trigger = Pin.IRQ_RISING, hard = True)
-        
-        self.button = Pin(12, Pin.IN, Pin.PULL_UP)
-        self.button.irq(handler = self.button_handler, trigger = Pin.IRQ_RISING, hard = True)
-        self.previous_button_press_timestamp = 0
-        
-        self.fifo = Fifo(30, typecode = 'i')
-        
-    def scroll_handler(self, pin):
-        if self.b():
-            self.fifo.put(-1)
-        else:
-            self.fifo.put(1)
-    
-    def button_handler(self, button):
-        current_timestamp = time.ticks_ms()
-        # ignore button press if less than 300 ms from previous
-        if time.ticks_diff(current_timestamp, self.previous_button_press_timestamp) > 300:
-            self.fifo.put(0)
-            self.previous_button_press_timestamp = current_timestamp
-        else:
-            self.fifo.put(-2)
-            
-    def clear(self): # clear the fifo
-        while self.fifo.has_data():
-            x = self.fifo.get()
-########################
 
 class PulseSensorData:
     def __init__(self, size, adc_pin_nr):
         self.fifo = Fifo(size, typecode = 'i')
         self.av = ADC(adc_pin_nr) # sensor AD channel
         
-        # for button handler
+        # button handler
         self.button = Pin(12, Pin.IN, Pin.PULL_UP)
         self.button.irq(handler = self.button_handler, trigger = Pin.IRQ_RISING, hard = True)
         self.previous_button_press_timestamp = 0
@@ -76,19 +42,14 @@ def collect_data_n_seconds(seconds=30):
         if not data.fifo.empty():
             samples.append(data.fifo.get())
         
-        
-        # user action detection -> jos painaa nappia, pitäisi palata menuun
+        # user action detection (go back to main menu if user pressed button)
         if not data.button_fifo.empty():
             button_value = data.button_fifo.get()
             print(button_value)
-            # jos value == 0: main menu -> logiikka on menu.py (ei voi importata??)
+
             if button_value == 0:
                tmr.deinit()
-               return None # measurement stopped -> returns none
+               return None # measurement stopped
     
     tmr.deinit()  # stop timer to disable handler
     return samples
-
-
-#samples = collect_data_n_seconds()
-#print(len(samples))  # verify that got 7500 samples in 30s
