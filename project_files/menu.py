@@ -117,30 +117,7 @@ class Menu:
             self.oled.fill(0)
             self.oled.main_menu() # show the main menu
             time.sleep(0.1)
-    
-    # alkuperäinen (muuta nimet)
-    def run_hrv1(self):
-        # Show the starting menu
-        self.oled.start_measurement_menu()
-        self.wait_for_button_press()
 
-        # Show collecting data text after the press
-        self.oled.fill(0)
-        self.oled.collecting_data() # update the oled
-        self.oled.fill(0)
-        
-        # Collect data and analyse HRV
-        hrv_results = self.hrv.get_basic_hrv_analysis()
-        self.oled.hrv_data_collected()
-        time.sleep(2) # Show data collected text for 2 sec
-        self.oled.fill(0)
-
-        # Show the results and return main menu after press
-        self.oled.show_hrv_results(hrv_results)
-        self.oled.selected_index = 0 # update select mark to top of the oled
-        self.return_main_menu_after_button_press()
-    
-    ###### tästä alkaen lisätty uusi -> palaako menuun kesken mittauksen? ############
     def run_hrv(self):
         # Show the starting menu
         self.oled.start_measurement_menu()
@@ -154,10 +131,12 @@ class Menu:
         # Collect data and analyse HRV
         hrv_results = self.hrv.get_basic_hrv_analysis()
         
-        # go back to main menu if hrv_results is None (no data, button pressed)
+        # Go back to main menu if hrv_results is None (button pressed)
         if hrv_results is None:
-            self.make_new_rot_button() # tee uusi rot nappi
-            #self.oled.main_menu()
+            self.make_new_rot_button() # new rot button
+            self.show_returning_message()
+            
+            # Go back to main menu
             self.back_to_main_menu()
             self.oled.main_menu()
         else:   
@@ -171,8 +150,6 @@ class Menu:
             self.make_new_rot_button() # lisätty
             self.return_main_menu_after_button_press()
 
-        
-        ###########################################
     
     def run_kubios(self): # KESKEN (ei vielä testattu, 1.5.)
         self.oled.start_measurement_menu()  # show the start menu
@@ -264,3 +241,10 @@ class Menu:
        
         elif self.is_button_pressed(button_value) and not self.is_valid_history_index():
             self.back_to_main_menu() # go back to main menu
+    
+    def show_returning_message(self):
+        self.oled.fill(0)
+        self.oled.text('Returning...', 22, 20)
+        self.oled.show()
+        time.sleep(2)
+        self.oled.fill(0)
