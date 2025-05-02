@@ -66,7 +66,7 @@ class Oled:
         self.hrv_units = ['BPM', 'ms', 'ms', 'ms']
         self.kubios_items = ['', 'Avg HR: ', 'Avg PPI: ', 'RMSSD: ', 'SDNN: ', 'SNS: ', 'PNS: ']
         self.kubios_units = ['', 'BPM', 'ms', 'ms', 'ms', sns_index, pns_index]
-        self.stopping_text = ['Returning main', 'menu in 5 s...', '', 'Press to return']
+        self.stopping_text = ['Returning main', 'menu...']
         self.error_text = ['  DATA ERROR', 'Press to retry', '', 'Menu in 5 s...']
 
     def fill(self, colour):
@@ -142,21 +142,44 @@ class Oled:
     
     # Kubios
     def show_kubios_results(self, kubios_result):
-        sns_pns = evaluate_sns_pns(kubios_result) # get sns and pns index value
-        sns_index = sns_pns[0]
-        pns_index = sns_pns[1]
+        # get sns and pns index value
+        sns_index, pns_index = evaluate_sns_pns(kubios_result)
         
         # update indexed to the units list
-        self.kubios_units[4] = sns_index
-        self.kubios_units[5] = pns_index
+        self.kubios_units[5] = sns_index
+        self.kubios_units[6] = pns_index
         
+        # loop through yksiköt and add each vastaava result to display buffer
+        for item in self.kubios_items:
+            index = self.kubios_items.index(item)
+            
+            if index == 0:
+                result = kubios_result['timestamp']
+            elif index == 1:
+                result = int(kubios_result['mean_hr'])
+            elif index == 2:
+                result = int(kubios_result['mean_ppi'])
+            elif index == 3:
+                result = int(kubios_result['rmssd'])
+            elif index == 4:
+                result = int(kubios_result['sdnn'])
+            elif index == 5:
+                result = round(kubios_result['pns'], 1)
+            elif index == 6:
+                result = round(kubios_result['sns'], 1)
+            
+            text = f'{item}{result} {self.kubios_units[index]}'
+            self.text(text, 0, self.y + 8 * index)
+            
+        
+        """
         for item in self.kubios_items:
             index = self.kubios_items.index(item)
             print(f'kubios items -listan indeksi: {index}')
             #text = f'{item}{self.measurements[index]} {self.kubios_units[index]}' # versio 1
             text = f'{item}{kubios_result[index]} {self.kubios_units[index]}'
             self.text(text, 0, self.y + 8 * index)
-        
+        """
         self.show()
     
     # History
@@ -176,7 +199,6 @@ class Oled:
     def show_selected_history(self, measurements):
         index = self.history_index
         selected_measurement = measurements[index]
-        
         self.show_kubios_results(selected_measurement)
 
     # Stop and error
@@ -195,8 +217,8 @@ class Oled:
         self.show()
 
 def evaluate_sns_pns(kubios_result):
-    sns = kubios_result[4]
-    pns = kubios_result[5]
+    sns = kubios_result['sns']
+    pns = kubios_result['pns']
     
     # sns
     if sns < -1:

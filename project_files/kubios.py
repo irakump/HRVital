@@ -3,6 +3,7 @@ from basic_hrv_analysis import HeartRate, BasicHRVAnalysis
 from mqtt import Mqtt
 import ujson
 import utime
+from history import History
 
 import micropython
 micropython.alloc_emergency_exception_buf(200)
@@ -69,7 +70,7 @@ class Kubios:
         # collect 30s of live data, then calculate peaks and ppis and send ppis to kubios for analysis
         data = collect_data_n_seconds(seconds=30)
         if not data:  # data collection canceled
-            return "Data collection cancelled"
+            return "Cancelled"
         #print(len(data))
         
         hr_class = HeartRate()
@@ -89,9 +90,13 @@ class Kubios:
         # this happens when there aren't enough ppis to perform the analysis
         # otherwise return formatted response
         if not kubios_result or kubios_result["data"] == "Invalid request":
-            return "Could not perform Kubios analysis"
+            return "Unable"
             #return {'invalid_request': "Could not perform Kubios analysis"}
-        return self.format_kubios_response(kubios_result)
+        
+        # format response
+        kubios_result = self.format_kubios_response(kubios_result)
+        History().save_to_history(kubios_result)  # save to history
+        return kubios_result
 
 
-print(Kubios().analyze_data_with_kubios())
+#print(Kubios().analyze_data_with_kubios())
