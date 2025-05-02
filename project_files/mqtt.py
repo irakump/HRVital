@@ -8,7 +8,7 @@ import ntptime
 import micropython
 micropython.alloc_emergency_exception_buf(200)
 
-
+"""
 timezone_time = 3  # input your timezone for accurate kubios timestamp
 
 
@@ -34,7 +34,7 @@ def get_local_date_time(timestamp):
         local_date_time[3], local_date_time[4],
     )
     return formatted_date_time
-
+"""
 
 class Mqtt:
     SSID = "KMD751_Group_1"
@@ -86,7 +86,7 @@ class Mqtt:
         except Exception as e:
             print(f"Failed to get MQTT message: {e}")
 
-
+    """
     def input_ppis_to_kubios_request_message(self, ppis):
         # kubios request format
         dataset = {
@@ -97,7 +97,8 @@ class Mqtt:
         }
         # transform dict to json format and encode to bytes
         return ujson.dumps(dataset).encode()
-    
+    """
+    """
     def format_kubios_response(self):
         analysis_data = self.kubios_result["data"]["analysis"]
         
@@ -116,20 +117,25 @@ class Mqtt:
             "sns": analysis_data["sns_index"]
         }
         return analysis_data_list
+    """
 
     # send ppis to kubios through mqtt and listen to result
-    def get_kubios_analysis_result(self, ppis):
-        message = self.input_ppis_to_kubios_request_message(ppis)
+    def get_kubios_analysis_result(self, message):
+        #message = self.input_ppis_to_kubios_request_message(ppis)
         
         self.send_message_to_mqtt(message, self.kubios_topic_pub)
         self.listen_message_from_mqtt(topic=self.kubios_topic_sub)
-        
+        return self.kubios_result
+        """
+        if not self.kubios_result:
+            return "Cannot connect to Kubios"
         # return string telling analysis could not be performed if data has value "Invalid request"
         # this happens when there aren't enough ppis to perform the analysis
         # otherwise return formatted response
         if self.kubios_result["data"] == "Invalid request":
             return "Could not perform Kubios analysis"
         return self.format_kubios_response()
+        """
         
     
     def send_basic_hrv_analysis_results_to_mqtt(self, message):
@@ -152,11 +158,10 @@ class Mqtt:
         return result
 
 # kubios
-"""
 # joskus tulee ongelma jos ppis ei ole lista vaikka onhan se (jos sen kopioi tähän muualta)
-ppis = [818, 836, 824, 848, 776, 754, 816, 800, 732, 756, 820, 872, 802]
-print(Mqtt().get_kubios_analysis_result(ppis))
-"""
+#ppis = [818, 836, 824, 848, 776, 754, 816, 800, 732, 756, 820, 872, 802]
+#print(Mqtt().get_kubios_analysis_result(ppis))
+
 
 # lähetä hrv mqtt:seen
 """
