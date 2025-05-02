@@ -1,5 +1,6 @@
 import time
 from oled import Encoder
+from HR_ppg_signal import HR
 
 # Menu logic
 class Menu:
@@ -8,13 +9,14 @@ class Menu:
         self.rot = rot
         self.hr = hr
         self.hrv = hrv
-        #self.measurements = measurements
         self.kubios = kubios
         self.history = history
     
     def make_new_rot_button(self):
         self.rot = Encoder()
-        #self.mqtt = mqtt
+    
+    def make_new_hr_button(self):
+        self.hr = HR()
         
     def get_fifo_value(self):
         if self.rot.fifo.has_data():
@@ -62,9 +64,6 @@ class Menu:
         elif self.oled.selected_menu == 'history':
             self.oled.history_index = min(len(self.history.read_from_history_file()), max(0, self.oled.history_index))
 
-        # Draw the selection symbol -> TARVITSEEKO TÄTÄ??
-        #self.oled.text(self.oled.symbol, 5, self.oled.y + self.oled.line_height * self.oled.selected_index)
-
     def update_selected_menu(self):
         if self.oled.selected_menu == 'main_menu':
             
@@ -81,8 +80,7 @@ class Menu:
                 self.oled.selected_menu = 'history'
                 self.oled.history_index = 0
 
-    def run_selected_menu(self): # alkuperäinen
-    #def run_selected_menu(self, rot): # uusi, testi       
+    def run_selected_menu(self):     
         if self.oled.selected_menu == 'main_menu':
             self.oled.main_menu()
 
@@ -90,8 +88,7 @@ class Menu:
             self.run_hr()
 
         elif self.oled.selected_menu == 'hrv':
-            self.run_hrv() # alkuperäinen
-            #self.run_hrv(rot) # uusi
+            self.run_hrv()
 
         elif self.oled.selected_menu == 'kubios':
             self.run_kubios() # ei valmis
@@ -100,8 +97,41 @@ class Menu:
             self.run_history()
         
         return self.oled.selected_menu
-    
+
+######## tästä alkaa uusi versio, hr
     def run_hr(self):
+        # tyhjennä tässä hr-button? vai hr-funktiossa?
+        self.make_new_hr_button()
+        #self.hr.show_menu() # näyttää valikon; onko tarpeellinen?
+        measuring = self.hr.run()
+        if not measuring: # arvo on False
+            # tyhjennä hr-buttonin fifo
+            try:
+                self.hr.button_fifo.clear()
+            except:
+                pass
+            """
+            #tyhjennä rot fifo
+            try:
+                self.rot.clear()
+            except:
+                pass"""
+            
+            time.sleep(0.2) # vai 0.1?
+            
+            # ONGELMA: palaa menuun, mutta pitää liikuttaa rotarya jotta se rekisteröi
+            # pitääkö back to main menussa päivittää näyttö?
+            
+            print(f'measuring arvo: {measuring}')
+            #self.make_new_rot_button() # ei toimi tässä
+            #self.rot.clear() # tyhjennä fifo # ei ehkä toimi/tarvi
+            self.back_to_main_menu() # tyhjennä rot-fifo, palaa main menuun
+            
+            # voiko tässä käydä että se olettaa painalluksen tarkoittavan siirtymistä
+            # ..hr-menuun??
+
+    # alkuperäinen versio, nimi oli run_hr
+    def run_hr2(self):
         # Show the starting menu
         self.oled.start_measurement_menu()
         self.hr.reset_button()
@@ -119,6 +149,7 @@ class Menu:
             self.oled.fill(0)
             self.oled.main_menu() # show the main menu
             time.sleep(0.1)
+#####################
 
     def run_hrv(self):
         # Show the starting menu
@@ -153,7 +184,7 @@ class Menu:
             self.return_main_menu_after_button_press()
 
     
-    def run_kubios(self): # KESKEN (ei vielä testattu, 1.5.)
+    def run_kubios(self):
         self.oled.start_measurement_menu()  # show the start menu
         self.wait_for_button_press()
         self.oled.fill(0)
@@ -186,6 +217,7 @@ class Menu:
             # Go back to main menu
             self.make_new_rot_button() # new rot button
             self.return_main_menu_after_button_press() # go back to main menu
+
                         
     def run_history(self):
         in_history_menu = True
@@ -224,7 +256,6 @@ class Menu:
         while True:
             if self.rot.fifo.has_data():
                 button_value = self.get_fifo_value()
-                print("return_main_menu_after_button_press")
                 
                 if self.is_button_pressed(button_value):
                     self.oled.fill(0)
@@ -241,7 +272,6 @@ class Menu:
         
     def show_selected_history(self):
         self.oled.fill(0)
-        #print("thing", self.oled.history_index)
         all_history_measurements = self.history.read_from_history_file()
         #print(all_history_measurements)
         
@@ -252,9 +282,15 @@ class Menu:
         self.wait_for_button_press() # return to history menu after button is pressed
         
     def back_to_main_menu(self):
+        self.rot.clear() # lisätty -> vanhan fifon tyhjennys
+        self.make_new_rot_button() # lisätty (kun palaa hr-mittauksesta menuun, tarvii napin)
         self.oled.fill(0)
         self.oled.selected_index = 0
         self.oled.selected_menu = 'main_menu'
+        
+        # tämä lisätty hr-funktiota varten (rikkooko muualta jotakin?)
+        self.oled.main_menu() # return to main menu and show
+        
         time.sleep(0.1)
         
     def handle_history_selection(self, button_value):

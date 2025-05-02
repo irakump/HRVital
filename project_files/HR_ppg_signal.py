@@ -52,7 +52,7 @@ class HR:
         # Initialize hardware
         self.timer = Piotimer(freq=250, mode=Piotimer.PERIODIC, callback=self.sample_isr)
         self.button.irq(handler=self.button_handler, trigger=Pin.IRQ_FALLING, hard=True)
-        self.show_menu()
+        #self.show_menu() # poistettu
 
 
     # ISR called 250 times/second by hardware timer
@@ -202,9 +202,10 @@ class HR:
                 return (60 * 250) // median_interval  # Convert samples to BPM
 
         return 0
-    
-    # Main program loop
-    def run(self):
+
+############################################
+    # Main program loop, original
+    def run1(self):
         while True:
             # Handle button press
             while self.button_fifo.has_data():
@@ -259,6 +260,66 @@ class HR:
                     
                     self.draw_display(self.display_bpm)  # Update oled with current bpm and waveform
 
+################
+# uusi main loop
+    def run(self):
+        self.show_menu() # lisätty
+        while True:
+            # Handle button press
+            while self.button_fifo.has_data():
+                _ = self.button_fifo.get()
+                self.measuring = not self.measuring
+                
+                if not self.measuring:   # Stop measurment mode
+                    return False # lisätty # exit back to menu
+                    #self.show_menu()
+                else:
+                    # Resets all bpm value
+                    self.first_valid = False
+                    self.bpm_index = 0
+                    self.last_bpm_update = ticks_ms()
+                    
+                    for i in range(len(self.bpm_history)):  # Clear BPM history
+                        self.bpm_history[i] = 0
+                        
+                    self.oled.fill(0)
+                    self.oled.text("Measuring...", 20, 30)
+                    self.oled.show()
 
-hr = HR()
-hr.run()
+            if self.measuring:
+                # Process available samples
+                self.process_samples()
+                
+                # Update BPM 
+                now = ticks_ms()
+                if ticks_diff(now, self.last_bpm_update) >= self.bpm_update_interval:  # Calculate bpm fixed intervals
+                    self.last_bpm_update = now  # reset timer
+                    current_bpm = self.calculate_bpm()
+                    
+                    if current_bpm > 0:   # store valid bpm
+                        self.bpm_history[self.bpm_index] = current_bpm   # Save bpm history buffer
+                        self.bpm_index = (self.bpm_index + 1) % len(self.bpm_history) # Move index forward with wraparound
+                        self.first_valid = True
+                        self.last_valid_bpm = current_bpm  
+                        
+                        # Only update display BPM if we have 3 valid readings
+                        valid = sorted([b for b in self.bpm_history if b > 0]) # Filter out invalid bpm(0) and sort the remaining values.
+                        if len(valid) >= 3:
+                            self.display_bpm = valid[len(valid)//2]  # Take the middle valid bpm after sorting
+                
+                # Update waveform display every 50ms
+                if ticks_diff(now, self.last_ppg_update) >= self.ppg_update_interval:
+                    self.last_ppg_update = now
+                    
+                    # Get most recent samples for display (continuous sampling)
+                    for i in range(self.width):
+                        # calculate which sample to display at pixel
+                        index = (self.write_index - (self.width - i)*5) % 750 # (self.width - i)*5 = spaces samples 5 positions apart, %750 wrap around 
+                        self.ppg_buf[i] = self.filtered[index]   # Stores the sample value for display
+                    
+                    self.draw_display(self.display_bpm)  # Update oled with current bpm and waveform
+
+
+
+#hr = HR()
+#hr.run()
