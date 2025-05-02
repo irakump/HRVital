@@ -1,4 +1,5 @@
 import time
+from oled import Encoder
 
 # Menu logic
 class Menu:
@@ -8,6 +9,9 @@ class Menu:
         self.hr = hr
         self.hrv = hrv
         self.measurements = measurements
+    
+    def make_new_rot_button(self):
+        self.rot = Encoder()
         #self.mqtt = mqtt
         
     def get_fifo_value(self):
@@ -75,7 +79,8 @@ class Menu:
                 self.oled.selected_menu = 'history'
                 self.oled.history_index = 0
 
-    def run_selected_menu(self):
+    def run_selected_menu(self): # alkuperäinen
+    #def run_selected_menu(self, rot): # uusi, testi       
         if self.oled.selected_menu == 'main_menu':
             self.oled.main_menu()
 
@@ -83,7 +88,8 @@ class Menu:
             self.run_hr()
 
         elif self.oled.selected_menu == 'hrv':
-            self.run_hrv()
+            self.run_hrv() # alkuperäinen
+            #self.run_hrv(rot) # uusi
 
         elif self.oled.selected_menu == 'kubios':
             self.run_kubios() # ei valmis
@@ -112,7 +118,8 @@ class Menu:
             self.oled.main_menu() # show the main menu
             time.sleep(0.1)
     
-    def run_hrv(self):
+    # alkuperäinen (muuta nimet)
+    def run_hrv1(self):
         # Show the starting menu
         self.oled.start_measurement_menu()
         self.wait_for_button_press()
@@ -132,6 +139,40 @@ class Menu:
         self.oled.show_hrv_results(hrv_results)
         self.oled.selected_index = 0 # update select mark to top of the oled
         self.return_main_menu_after_button_press()
+    
+    ###### tästä alkaen lisätty uusi -> palaako menuun kesken mittauksen? ############
+    def run_hrv(self):
+        # Show the starting menu
+        self.oled.start_measurement_menu()
+        self.wait_for_button_press()
+
+        # Show collecting data text after the press
+        self.oled.fill(0)
+        self.oled.collecting_data() # update the oled
+        self.oled.fill(0)
+        
+        # Collect data and analyse HRV
+        hrv_results = self.hrv.get_basic_hrv_analysis()
+        
+        # go back to main menu if hrv_results is None (no data, button pressed)
+        if hrv_results is None:
+            self.make_new_rot_button() # tee uusi rot nappi
+            #self.oled.main_menu()
+            self.back_to_main_menu()
+            self.oled.main_menu()
+        else:   
+            self.oled.hrv_data_collected()
+            time.sleep(2) # Show data collected text for 2 sec
+            self.oled.fill(0)
+
+            # Show the results and return main menu after press
+            self.oled.show_hrv_results(hrv_results)
+            self.oled.selected_index = 0 # update select mark to top of the oled
+            self.make_new_rot_button() # lisätty
+            self.return_main_menu_after_button_press()
+
+        
+        ###########################################
     
     def run_kubios(self): # KESKEN (ei vielä testattu, 1.5.)
         self.oled.start_measurement_menu()  # show the start menu

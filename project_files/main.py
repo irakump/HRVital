@@ -1,7 +1,8 @@
 from oled import Encoder, Oled
 from heart_rate import HR
 import time
-from basic_hrv_analysis import BasicHRVAnalysis
+#from basic_hrv_analysis import BasicHRVAnalysis # original
+from basic_hrv_analysis import BasicHRVAnalysis # uusi testi
 #from mqtt import Mqtt
 from menu import Menu
 
@@ -40,10 +41,6 @@ while True:
     if button_value is not None:
         menu.detect_user_action(button_value)
         oled.fill(0)
-        
-        # to compare values (may not be necessary)
-        #previous_menu = oled.selected_menu
-        #new_menu = menu.run_selected_menu()
 
         menu.run_selected_menu()
         
