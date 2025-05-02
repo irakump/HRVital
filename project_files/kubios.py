@@ -81,13 +81,14 @@ class Kubios:
         
         message = self.input_ppis_to_kubios_request_message(all_ppis)
         
+        #mqtt = Mqtt()
         kubios_result = Mqtt().get_kubios_analysis_result(message)
-        print(kubios_result)
+        #print(kubios_result)
         
         # return string telling analysis could not be performed if data has value "Invalid request"
         # this happens when there aren't enough ppis to perform the analysis
         # otherwise return formatted response
-        if kubios_result["data"] == "Invalid request":
+        if not kubios_result or kubios_result["data"] == "Invalid request":
             return "Could not perform Kubios analysis"
             #return {'invalid_request': "Could not perform Kubios analysis"}
         return self.format_kubios_response(kubios_result)

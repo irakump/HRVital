@@ -133,7 +133,7 @@ class BasicHRVAnalysis:
     def get_basic_hrv_analysis(self):
         data = collect_data_n_seconds(seconds=30)
         if not data:  # data collection canceled
-            return False
+            return None
         #print(len(data))
         
         hr_class = HeartRate()
@@ -148,7 +148,8 @@ class BasicHRVAnalysis:
         
         if not cleaned_ppis:
             message = "Invalid result"
-            return Mqtt().send_basic_hrv_analysis_results_to_mqtt(message)
+            Mqtt().send_basic_hrv_analysis_results_to_mqtt(message)
+            return message
         
         mean_ppi = self.get_mean_ppi(cleaned_ppis)
         print(f'mean_ppi: {mean_ppi:.0f}')
@@ -164,10 +165,11 @@ class BasicHRVAnalysis:
         mean_hr = sum(hrs) / len(hrs)
         print(f'mean_hr: {mean_hr:.0f}')
         
+        # testaamiseen, poista lopullisesta versiosta
         #kubios_result = Mqtt().get_kubios_analysis_result(all_ppis)
         #print(kubios_result)
         
-        # testaamiseen, poista lopullisesta versiosta
+        # send results to mqtt
         message = {"mean_hr": mean_hr, "mean_ppi": mean_ppi, "rmssd": rmssd, "sdnn": sdnn}
         Mqtt().send_basic_hrv_analysis_results_to_mqtt(message)
         
