@@ -3,12 +3,14 @@ from oled import Encoder
 
 # Menu logic
 class Menu:
-    def __init__(self, oled, rot, hr, hrv, measurements):
+    def __init__(self, oled, rot, hr, hrv, kubios, history):
         self.oled = oled
         self.rot = rot
         self.hr = hr
         self.hrv = hrv
-        self.measurements = measurements
+        #self.measurements = measurements
+        self.kubios = kubios
+        self.history = history
     
     def make_new_rot_button(self):
         self.rot = Encoder()
@@ -58,7 +60,7 @@ class Menu:
         
         # Limit history menu indexes
         elif self.oled.selected_menu == 'history':
-            self.oled.history_index = min(len(self.measurements), max(0, self.oled.history_index))
+            self.oled.history_index = min(len(self.history.read_from_history_file()), max(0, self.oled.history_index))
 
         # Draw the selection symbol -> TARVITSEEKO TÄTÄ??
         #self.oled.text(self.oled.symbol, 5, self.oled.y + self.oled.line_height * self.oled.selected_index)
@@ -154,23 +156,36 @@ class Menu:
     def run_kubios(self): # KESKEN (ei vielä testattu, 1.5.)
         self.oled.start_measurement_menu()  # show the start menu
         self.wait_for_button_press()
+        self.oled.fill(0)
         self.oled.collecting_data()
         
-        # Collect HRV data
-        all_ppis = self.hrv.get_basic_hrv_analysis() # funktion pitää palauttaa ppi:t!
-        self.oled.hrv_data_collected()
-        time.sleep(1.5) # show data collected -text for 1.5 sec
-        self.oled.fill(0)
-        self.oled.show_sending_data_text() # show sending data -text until Kubios is ready
-        
         # Send data to Kubios and show result
-        kubios_result = get_kubios_analysis_result(all_ppis)
-        self.oled.fill(0)
-        self.oled.show_kubios_result(kubios_result)
-        self.oled.selected_index = 0
-        self.return_main_menu_after_button_press() # go back to main menu
-
-        #self.testi_kubios_tulos()
+        kubios_result = self.kubios.analyze_data_with_kubios()
+        print(kubios_result)
+        
+        # show message if kubios result is a string
+        if isinstance(kubios_result, str):
+            self.make_new_rot_button() # new rot button
+            #self.show_returning_message()
+            self.oled.fill(0)
+            #self.oled.text("Unable", 30, 20)
+            self.oled.text(kubios_result, 30, 20)
+            self.oled.show()
+            time.sleep(2)  # show result for 2s
+            
+            # Go back to main menu
+            self.back_to_main_menu()
+            self.oled.main_menu()
+        
+        # print kubios result to screen
+        else:
+            self.oled.fill(0)
+            self.oled.show_kubios_results(kubios_result)
+            self.oled.selected_index = 0
+        
+            # Go back to main menu
+            self.make_new_rot_button() # new rot button
+            self.return_main_menu_after_button_press() # go back to main menu
                         
     def run_history(self):
         in_history_menu = True
@@ -181,13 +196,13 @@ class Menu:
             # Continue loop and update OLED if fifo is empty
             if button_value is None:
                 self.oled.fill(0)
-                self.oled.history_menu(self.measurements)
+                self.oled.history_menu(self.history.read_from_history_file())
                 continue
             
             # Update OLED display to chosen history measurement
             self.detect_user_action(button_value) # update history index
             self.oled.fill(0) # lisätty
-            self.oled.history_menu(self.measurements) # lisätty
+            self.oled.history_menu(self.history.read_from_history_file()) # lisätty
             self.handle_history_selection(button_value)
                 
             in_history_menu = False
@@ -209,6 +224,7 @@ class Menu:
         while True:
             if self.rot.fifo.has_data():
                 button_value = self.get_fifo_value()
+                print("return_main_menu_after_button_press")
                 
                 if self.is_button_pressed(button_value):
                     self.oled.fill(0)
@@ -218,14 +234,20 @@ class Menu:
                 
     def is_valid_history_index(self):
         # Check if history_index is in between 0 and len(self.measurements) - 1
-        if self.oled.history_index < (len(self.measurements)):
+        if self.oled.history_index < (len(self.history.read_from_history_file())):
             return True
         else:
             return False
         
     def show_selected_history(self):
         self.oled.fill(0)
-        selected_measurement = self.measurements[self.oled.history_index]
+        #print("thing", self.oled.history_index)
+        all_history_measurements = self.history.read_from_history_file()
+        #print(all_history_measurements)
+        
+        #print(all_history_measurements.get(str(self.oled.history_index)))
+        
+        selected_measurement = all_history_measurements.get(str(self.oled.history_index))
         self.oled.show_kubios_results(selected_measurement)
         self.wait_for_button_press() # return to history menu after button is pressed
         
@@ -240,7 +262,10 @@ class Menu:
             self.show_selected_history() # show measurement
        
         elif self.is_button_pressed(button_value) and not self.is_valid_history_index():
-            self.back_to_main_menu() # go back to main menu
+            # Go back to main menu
+            self.back_to_main_menu()
+            time.sleep(0.1)
+            self.oled.main_menu()
     
     def show_returning_message(self):
         self.oled.fill(0)
