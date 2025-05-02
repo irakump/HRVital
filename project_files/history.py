@@ -55,11 +55,3 @@ class History:
         data = self.combine_new_data_with_old_data(new_data)
         self.write_to_history_file(data)
 
-
-#history = History()
-#history.delete_history_file()
-
-#history.save_to_history('this is placeholder')
-
-#data = history.read_from_history_file()
-#print(len(data), data)
