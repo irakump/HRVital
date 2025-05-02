@@ -11,7 +11,7 @@ micropython.alloc_emergency_exception_buf(200)
 
 class Kubios:
     def __init__(self):
-        self.timezone_time = 3  # input your timezone for accurate kubios timestamp
+        self.timezone = 3  # input your timezone for accurate kubios timestamp
     
     # this is done as pico board timezone is UTC (+0)
     def get_local_date_time(self, timestamp):
@@ -26,13 +26,17 @@ class Kubios:
     
         # get time in seconds, add timezone offset in seconds to it and transform back into date and time
         date_time_seconds = utime.mktime((year, month, day, hour, minute, second, 0, 0))
-        offset = self.timezone_time * 3600  # timezone * seconds in hour
+        offset = self.timezone * 3600  # timezone * seconds in hour
         local_date_time = utime.localtime(date_time_seconds + offset)
-    
+        
+        # place 0 in front of single digit minutes
+        minutes = local_date_time[4]
+        minutes = f'0{minutes}' if minutes < 10 else minutes
+        
         # format date and time to readable form
         formatted_date_time = "{}.{}.{} {}:{}".format(
             local_date_time[2], local_date_time[1], local_date_time[0],
-            local_date_time[3], local_date_time[4],
+            local_date_time[3], minutes,
         )
         return formatted_date_time
     
@@ -66,32 +70,22 @@ class Kubios:
         }
         return analysis_data_list
     
+    # collect 30s of live data, then calculate peaks and ppis and send ppis to kubios for analysis
     def analyze_data_with_kubios(self):
-        # collect 30s of live data, then calculate peaks and ppis and send ppis to kubios for analysis
         data = collect_data_n_seconds(seconds=30)
         if not data:  # data collection canceled
             return "Cancelled"
-        #print(len(data))
         
         hr_class = HeartRate()
         peak_indexes = hr_class.find_peaks(data)
-        #print('peaks', len(peak_indexes), peak_indexes)
-        
         all_ppis = BasicHRVAnalysis().get_ppis(peak_indexes)  # in ms
-        print('all_ppis', len(all_ppis), all_ppis)
         
         message = self.input_ppis_to_kubios_request_message(all_ppis)
-        
-        #mqtt = Mqtt()
         kubios_result = Mqtt().get_kubios_analysis_result(message)
-        #print(kubios_result)
         
-        # return string telling analysis could not be performed if data has value "Invalid request"
-        # this happens when there aren't enough ppis to perform the analysis
-        # otherwise return formatted response
+        # analysis could not be performed response (too few ppis)
         if not kubios_result or kubios_result["data"] == "Invalid request":
             return "Unable"
-            #return {'invalid_request': "Could not perform Kubios analysis"}
         
         # format response
         kubios_result = self.format_kubios_response(kubios_result)
