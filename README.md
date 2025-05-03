@@ -5,6 +5,14 @@
 
 HRVital is the final project of the Hardware 2 course. The project objective was to make a device which measures physiological signals and analyses them to determine the physical well being of the subject.
 
+## Requirements
+- Thonny
+- Raspberry Pi Pico
+- Raspberry Pi
+- Internet
+- MQTT
+- Kubios
+
 ## Setting up the device
 
 ### Cloning the repository
@@ -30,17 +38,12 @@ Empty your Raspberry Pi Pico by following these steps:
 
 ### Setup MicroPython to Raspberry Pi Pico
 
-1. Open Thonny and select Micropython (Raspberry Pi Pico) from the bottom right. 
-2. Select Install micropython
-3. From variant, select Raspberry Pi Pico W / Pico WH
-4. Click install.
-5. Click close when done.
-
-
-### Install MQTT client
-
-Install MQTT client to Raspberry Pi Pico by running **install_mqtt.py** script. Open it in Thonny, change the **SSID**, **PASSWORD**, **BROKER_IP** on top of the file and click run.
-
+1. Open Thonny.
+2. Select MicroPython (Raspberry Pi Pico) from the bottom right. 
+3. Select Install MicroPython.
+4. From variant, select Raspberry Pi Pico W / Pico WH.
+5. Click Install.
+6. Click close when done.
 
 ### Run install script
 
@@ -57,7 +60,10 @@ Run install script to input files to Raspberry Pi Pico.
     install.sh
     ```
 
+### Change network settings
+Open Thonny and select **mqtt.py** from within Raspberry Pi Pico.
+Change **SSID**, **PASSWORD** and **BROKER_IP** on top of the file to match yours. Save the changes.
+
 ## Ready
 
-Now you're all ready to use all the features of the HRVital! 
-All of the necessary files are on Raspberry Pi Pico and they will run when the Pico is connected to a power source.
+Now you're all ready to use the HRVital. Open **main.py** and run it.
