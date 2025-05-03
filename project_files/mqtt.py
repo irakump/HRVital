@@ -15,7 +15,6 @@ BROKER_IP = "192.168.1.253"
 PORT = 21883
 
 
-# ehkä kutsu tätä funktiota mainissa?
 # Function to connect to WLAN
 def connect_wlan():
     # Connecting to the group WLAN
@@ -88,28 +87,3 @@ class Mqtt:
         # message has to be in dict format so message can be formatted to json and encoded
         message = ujson.dumps(message).encode()
         self.send_message_to_mqtt(message, self.basic_hrv_analysis_topic)
-    
-    def testi_kubios_tulos(self): #(self, ppis):
-        # testifunktio tulosten printtaamiseen näytölle
-        ppis = [828, 836, 852, 760, 800, 796, 856, 824, 808, 776, 724, 816, 800, 812, 812, 812, 756, 820, 812, 800]
-        result1 = {'sns': 1.767119, 'mean_hr': 74.53416, 'timestamp': '30.4.2025 - 12:59', 'mean_ppi': 805, 'rmssd': 42.90517, 'sdnn': 30.65533, 'pns': -0.3011305}
-        result = ['30.4.2025 - 12:59', 74, 805, 43, 31, 1.8, -0.3]
-        
-        #ppis = [828, 836, 824, 808, 776, 724, 816, 800, 812, 756, 820, 812, 800]
-        #result = {'sns': 2.240657, 'mean_hr': 74.91356, 'timestamp': '30.4.2025 - 13:19', 'mean_ppi': 800.9232, 'rmssd': 41.12286, 'sdnn': 30.65182, 'pns': -0.3887478}
-        
-        #ppis = [818, 836, 824, 848, 776, 754, 816, 800, 732, 756, 820, 872, 802]
-        #result = {'sns': 1.353096, 'mean_hr': 74.61257, 'timestamp': '30.4.2025 - 13:20', 'mean_ppi': 804.1537, 'rmssd': 47.97943, 'sdnn': 39.5884, 'pns': -0.2460783}
-        return result
-
-# kubios
-# joskus tulee ongelma jos ppis ei ole lista vaikka onhan se (jos sen kopioi tähän muualta)
-#ppis = [818, 836, 824, 848, 776, 754, 816, 800, 732, 756, 820, 872, 802]
-#print(Mqtt().get_kubios_analysis_result(ppis))
-
-
-# lähetä hrv mqtt:seen
-"""
-message = {"1": "analysis results", "2": "item"}
-Mqtt().send_basic_hrv_analysis_results_to_mqtt(message)
-"""
