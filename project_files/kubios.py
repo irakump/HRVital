@@ -78,9 +78,11 @@ class Kubios:
         
         hr_class = HeartRate()
         peak_indexes = hr_class.find_peaks(data)
-        all_ppis = BasicHRVAnalysis().get_ppis(peak_indexes)  # in ms
+        hrv_analysis_class = BasicHRVAnalysis()
+        all_ppis = hrv_analysis_class.get_ppis(peak_indexes)  # in ms
+        cleaned_ppis = hrv_analysis_class.clean_ppis(all_ppis)
         
-        message = self.input_ppis_to_kubios_request_message(all_ppis)
+        message = self.input_ppis_to_kubios_request_message(cleaned_ppis)
         kubios_result = Mqtt().get_kubios_analysis_result(message)
         
         # analysis could not be performed response (too few ppis)
@@ -91,6 +93,3 @@ class Kubios:
         kubios_result = self.format_kubios_response(kubios_result)
         History().save_to_history(kubios_result)  # save to history
         return kubios_result
-
-
-#print(Kubios().analyze_data_with_kubios())
