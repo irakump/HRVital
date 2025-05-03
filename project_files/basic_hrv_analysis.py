@@ -143,7 +143,7 @@ class BasicHRVAnalysis:
         print(f'mean_hr: {mean_hr:.0f}')
         
         # send results to mqtt
-        message = {"mean_hr": mean_hr, "mean_ppi": mean_ppi, "rmssd": rmssd, "sdnn": sdnn}
+        message = {"mean_hr": int(mean_hr), "mean_ppi": int(mean_ppi), "rmssd": int(rmssd), "sdnn": int(sdnn)}
         Mqtt().send_basic_hrv_analysis_results_to_mqtt(message)
         
         # return calculated values
