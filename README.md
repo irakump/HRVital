@@ -3,7 +3,9 @@
 
 ## Hardware 2 Project
 
-HRVital is the final project of the Hardware 2 course. The project objective was to make a device which measures physiological signals and analyses them to determine the physical well being of the subject.
+HRVital is an IoT-based system developed as a group project during the Hardware 2 course. The goal was to design and implement a device capable of measuring and analyzing physiological signals — particularly heart rate and heart rate variability (HRV) — to assess the user’s physical well-being.
+
+The system combines embedded hardware, network communication, and third-party analysis software (Kubios Cloud) to deliver a functional health-monitoring prototype.
 
 ## Requirements
 - Thonny
