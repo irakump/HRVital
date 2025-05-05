@@ -8,12 +8,12 @@ HRVital is an IoT-based system developed as a group project during the Hardware 
 The system combines embedded hardware, network communication, and third-party analysis software (Kubios Cloud) to deliver a functional health-monitoring prototype.
 
 ## Requirements
-- Thonny
-- Raspberry Pi Pico
-- Raspberry Pi
-- Internet
-- MQTT
-- Kubios
+- Thonny IDE - the project is programmed using MicroPython
+- Raspberry Pi Pico W - a microcontroller that reads physiological data from the connected pulse sensor
+- Raspberry Pi - acts as a backend device for data handling and communication
+- Internet - required to connect devices via Wi-Fi and allow real-time communication using MQTT protocol
+- MQTT - devices communicate via MQTT over a local Wi-Fi network
+- Kubios - the collected HR and HRV data is analyzed using Kubios Cloud, a professional-grade software for heart rate variability analysis
 
 ## Setting up the device
 
